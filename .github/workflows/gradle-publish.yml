@@ -39,20 +39,20 @@ jobs:
       - name: Run tests
         run: ./gradlew test --info
 
-      - name: Get current date
-        id: date
-        run: echo "BUILD_DATE=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+      # - name: Get current date
+      #   id: date
+      #   run: echo "BUILD_DATE=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
       - name: Build Docker image
         run: |
-          docker build -t sipkh85wzdrg7ivsyep7/wertljkfdhsvjklgsh:${{ env.BUILD_DATE }} .
+          docker build -t sipkh85wzdrg7ivsyep7/maping:latest .
       - name: Publish to Docker
         run: |
-          docker tag sipkh85wzdrg7ivsyep7/wertljkfdhsvjklgsh:${{ env.BUILD_DATE }} regis.gosegu.top/maping:${{ env.BUILD_DATE }}
+          docker tag sipkh85wzdrg7ivsyep7/maping:latest regis.gosegu.top/maping:latest
       - name: Docker push with retries
         run: |
           for i in {1..5}; do
-            docker push regis.gosegu.top/maping:${{ env.BUILD_DATE }} && break || sleep 10
+            docker push regis.gosegu.top/maping:latest && break || sleep 10
           done
   dependency-submission:
     runs-on: ubuntu-latest
