@@ -1,0 +1,122 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.2'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.netflix.dgs.codegen' version '7.0.3'
+	id 'org.graalvm.buildtools.native' version '0.10.4'
+}
+
+group = 'org.maping'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(23)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('springModulithVersion', "1.3.1")
+}
+
+dependencies {
+	// 기본 의존성들
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-groovy-templates'
+	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+	implementation 'org.jboss.logging:jboss-logging:3.4.1.Final'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	implementation 'org.springframework.security:spring-security-core:6.0.0'
+
+	// JWT 관련 의존성 추가 (버전 통일)
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+	// JavaMail API 의존성 추가
+	implementation 'jakarta.mail:jakarta.mail-api:2.0.0'
+	implementation 'com.sun.mail:jakarta.mail:2.0.0'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	// MariaDB 드라이버 추가
+	implementation 'org.mariadb.jdbc:mariadb-java-client'
+
+	// Spring Modulith 의존성
+	implementation 'org.springframework.modulith:spring-modulith-starter-core'
+	implementation 'org.springframework.modulith:spring-modulith-starter-jpa'
+
+	// H2 데이터베이스 (테스트용)
+	implementation 'com.h2database:h2'
+
+	// Lombok, Spring DevTools 의존성
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// AnnotationProcessor
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Swagger 의존성
+	implementation 'io.swagger.core.v3:swagger-annotations:2.1.10'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+	// 테스트 관련 의존성
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// 추가 의존성
+	implementation 'org.springframework.modulith:spring-modulith-events-jpa:1.3.2'
+	implementation 'org.jsoup:jsoup:1.19.1'
+	implementation 'com.google.genai:google-genai:0.2.0'
+
+	// Spring WebFlux (WebClient 사용을 위함)
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// Reactor Core (Mono, Flux 사용을 위함)
+	implementation 'io.projectreactor:reactor-core'
+
+	// Netty (Spring WebFlux의 기본 서버 엔진)
+	implementation 'io.netty:netty-all'
+
+	implementation 'com.github.f4b6a3:ulid-creator:5.2.3'
+
+}
+
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
+	}
+}
+
+
+generateJava {
+	schemaPaths = ["${projectDir}/src/main/resources/graphql-client"]
+	packageName = 'org.maping.maping.codegen'
+	generateClient = true
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile) {
+	options.compilerArgs += '-parameters'
+}
