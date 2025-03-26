@@ -54,7 +54,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Publish to docker hub
-        run: docker push docker.io/sipkh85wzdrg7ivsyep7/maping
+        run: docker push docker.io/sipkh85wzdrg7ivsyep7/maping:1.0
 
       # - name: Publish to Docker
       #   run: |
