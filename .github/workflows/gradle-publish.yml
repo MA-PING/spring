@@ -45,14 +45,14 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t sipkh85wzdrg7ivsyep7/maping:latest .
+          docker build -t sipkh85wzdrg7ivsyep7/maping:1.0 .
       - name: Publish to Docker
         run: |
-          docker tag sipkh85wzdrg7ivsyep7/maping:latest regis.gosegu.top/maping:latest
+          docker tag sipkh85wzdrg7ivsyep7/maping:1.0 regis.gosegu.top/maping:1.0
       - name: Docker push with retries
         run: |
           for i in {1..5}; do
-            docker push regis.gosegu.top/maping:latest && break || sleep 10
+            docker push regis.gosegu.top/maping:1.0 && break || sleep 10
           done
   dependency-submission:
     runs-on: ubuntu-latest
