@@ -23,7 +23,7 @@ COPY . .
 RUN ./gradlew clean build -x test
 
 # 실행 단계
-FROM openjdk:23-jdk-slim
+FROM openjdk:23-jdk
 
 WORKDIR /app
 
