@@ -59,7 +59,7 @@ public class JWTUtill {
     private String createToken(String userId, String role, Date expirationDate, String type) {
         Date now = new Date();
         return Jwts.builder()
-                .setIssuer("skuhub")
+                .setIssuer("maping")
                 .setSubject(userId)
                 .setExpiration(expirationDate)
                 .setIssuedAt(now)
