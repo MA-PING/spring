@@ -98,7 +98,7 @@ public class CharacterServiceImpl implements CharacterService {
         if (ocid == null || ocid.trim().isEmpty()) {
             throw new CustomException(ErrorCode.BadRequest, "유효하지 않은 ocid 입니다.");
         }
-        return nexonUtils.getCharacterInfo(ocid, false);
+        return nexonUtils.getCharacterInfo(ocid, true);
     }
 
     @Override
