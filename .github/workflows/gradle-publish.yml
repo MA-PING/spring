@@ -49,11 +49,11 @@ jobs:
 
       - name: Publish to Docker
         run: |
-          docker tag sipkh85wzdrg7ivsyep7/maping:${{ env.BUILD_DATE }} ${{ secrets.REGI }}/maping:${{ env.BUILD_DATE }}
+          docker tag sipkh85wzdrg7ivsyep7/maping:${{ env.BUILD_DATE }} ${{ secrets.REGI }}:${{ env.BUILD_DATE }}
           
       - name: Docker push with retries
         run: |
-          docker push ${{ secrets.REGI }}/maping:${{ env.BUILD_DATE }}
+          docker push ${{ secrets.REGI }}:${{ env.BUILD_DATE }}
           
   dependency-submission:
     runs-on: ubuntu-latest
