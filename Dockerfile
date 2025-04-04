@@ -25,6 +25,8 @@ RUN ./gradlew clean build -x test
 # 실행 단계
 FROM openjdk:23-jdk
 
+ENV TZ=Asia/Seoul
+
 WORKDIR /app
 
 # 빌드한 JAR 파일 복사
