@@ -27,6 +27,7 @@ import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.GoogleSearch;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,7 +69,9 @@ public class GEMINIUtils {
     @Scheduled(cron = "0 0 0 * * *")
     public void setNotice() throws HttpException, IOException {
         NoticeUpdateListDTO noticeList = nexonUtils.getNoticeUpdateList();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         log.info(noticeList.toString());
+
         for(int i = noticeList.getNotice().size() -1; i >= 0 ; i--){
             NoticeJpaEntity entity = noticeRepository.findByNoticeUrl((noticeList.getNotice().get(i).getUrl()));
             if(entity == null){
@@ -78,12 +81,13 @@ public class GEMINIUtils {
                 NoticeJpaEntity notice = NoticeJpaEntity.builder()
                         .noticePart("패치노트")
                         .noticeTitle(noticeList.getNotice().get(i).getTitle())
-                        .noticeDate(LocalDateTime.parse(noticeList.getNotice().get(i).getDate()))
+                        .noticeDate(LocalDateTime.parse(noticeList.getNotice().get(i).getDate().substring(0, 16)))
                         .noticeSummary(noticeSummary)
                         .noticeUrl(noticeList.getNotice().get(i).getUrl())
                         .version(version)
                         .build();
                 noticeRepository.save(notice);
+                log.info("공지 저장 성공. {}",i);
             }else{
                 log.info("이미 저장된 공지입니다. {}",i);
             }
