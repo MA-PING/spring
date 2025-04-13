@@ -51,8 +51,8 @@ public class GEMINIUtils {
     private final NoticeRepository noticeRepository;
 
 
-    private final String Gemini2URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro-exp-02-05:generateContent?key="; //:streamGenerateContent?alt=sse
-    private final String Gemini2StreamURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro-exp-02-05:streamGenerateContent?alt=sse&key="; //:streamGenerateContent?alt=sse
+    private final String Gemini2URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="; //:streamGenerateContent?alt=sse
+    private final String Gemini2StreamURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key="; //:streamGenerateContent?alt=sse
 
     public GEMINIUtils(@Value("${spring.gemini.key}") String geminiApiKey, NEXONUtils nexonUtils, NoticeRepository noticeRepository) {
         GEMINI_API_KEY = geminiApiKey;
@@ -201,7 +201,7 @@ public class GEMINIUtils {
 //                        .build();
 //
 //        ResponseStream<GenerateContentResponse> responseStream =
-//                client.models.generateContentStream("gemini-2.0-pro-exp-02-05", text, config);
+//                client.models.generateContentStream("gemini-2.0-flash", text, config);
 //        log.info(responseStream.toString());
 //        responseStream.close();
 //    }
@@ -246,7 +246,7 @@ public class GEMINIUtils {
                         .build();
 
         GenerateContentResponse response =
-                client.models.generateContent("gemini-2.0-pro-exp-02-05", text, config);
+                client.models.generateContent("gemini-2.0-flash", text, config);
 
         return response.text();
     }
@@ -255,7 +255,7 @@ public class GEMINIUtils {
 //        Client client = Client.builder().apiKey(GEMINI_API_KEY).build();
 //
 //        GenerateContentResponse response =
-//                client.models.generateContent("gemini-2.0-pro-exp-02-05", text, null);
+//                client.models.generateContent("gemini-2.0-flash", text, null);
 //
 //        return response.text();
 //    }
@@ -264,7 +264,7 @@ public class GEMINIUtils {
 //        Client client = Client.builder().apiKey(GEMINI_API_KEY).build();
 //
 //        GenerateContentResponse response =
-//                client.models.generateContent("gemini-2.0-pro-exp-02-05", text, null);
+//                client.models.generateContent("gemini-2.0-flash", text, null);
 //
 //        return response.text();
 //    }

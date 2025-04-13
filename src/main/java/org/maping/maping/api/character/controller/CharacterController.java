@@ -74,4 +74,6 @@ public class CharacterController {
     public BaseResponse<CharacterResponse> getApiCheck(@RequestBody ApiKeyCheckRequest apiKey) {
         return new BaseResponse<>(HttpStatus.OK.value(), "api 키를 검증하는 API", characterServiceImpl.getApiCheck(apiKey.getApiKey()));
     }
+
+
 }
