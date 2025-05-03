@@ -37,7 +37,7 @@
 #ENTRYPOINT ["java", "-jar", "app.jar"]
 # Stage 1: Builder - Gradle 실행 환경 (JDK 21 사용)
 # Gradle 8.12.1 실행과 호환되는 JDK 21 베이스 이미지 사용
-FROM eclipse-temurin:21-jdk AS builder
+FROM eclipse-temurin:23-jdk AS builder
 
 RUN apt-get update && \
     # Temurin 23 설치 예시 (패키지 관리자로 설치 가능한지, 정확한 패키지명 확인 필요)
