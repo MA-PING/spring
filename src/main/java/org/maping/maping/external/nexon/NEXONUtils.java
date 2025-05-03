@@ -9,6 +9,7 @@ import org.maping.maping.external.nexon.dto.character.CharacterDTO;
 import org.maping.maping.external.nexon.dto.character.CharacterInfoDTO;
 import org.maping.maping.external.nexon.dto.character.CharacterListDto;
 import org.maping.maping.external.nexon.dto.character.ability.CharacterAbilityDTO;
+import org.maping.maping.external.nexon.dto.character.android.CharacterAndroidEquipmentDTO;
 import org.maping.maping.external.nexon.dto.character.cashItem.CharacterCashItemEquipmentDTO;
 import org.maping.maping.external.nexon.dto.character.itemEquipment.CharacterItemEquipmentDTO;
 import org.maping.maping.external.nexon.dto.character.matrix.CharacterHexaMatrixDTO;
@@ -286,6 +287,22 @@ public class NEXONUtils {
                 .body(CharacterHexaMatrixStatDTO.class);
     }
 
+    // ocid를 통해 안드로이드 장비 정보를 가져오는 API
+    public CharacterAndroidEquipmentDTO getCharacterAndroid(@NotBlank String ocid) {
+        RestClient restClient = RestClient.builder()
+                .baseUrl("https://open.api.nexon.com/maplestory/v1/character/android-equipment")
+                .defaultHeader("x-nxopen-api-key", Key)
+                .build();
+
+        return restClient.get()
+                .uri(uriBuilder -> uriBuilder.queryParam("ocid", ocid).build())
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                    throw new CustomException(ErrorCode.Forbidden, (response.getStatusCode() + response.getHeaders().toString()));
+                })
+                .body(CharacterAndroidEquipmentDTO.class);
+    }
+
     // ocid를 통해 캐릭터의 유니온 정보를 가져오는 API
     public UnionDTO getUnion(@NotBlank String ocid) {
         RestClient restClient = RestClient.builder()
@@ -466,6 +483,10 @@ public class NEXONUtils {
         });
         tasks.add(() -> {
             characterInfo.setSymbolEquipment(getCharacterSymbolEquipment(ocid));
+            return null;
+        });
+        tasks.add(() -> {
+            characterInfo.setAndroidEquipment(getCharacterAndroid(ocid));
             return null;
         });
         tasks.add(() -> {

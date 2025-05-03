@@ -2,6 +2,7 @@ package org.maping.maping.external.nexon.dto.character;
 
 import lombok.*;
 import org.maping.maping.external.nexon.dto.character.ability.CharacterAbilityDTO;
+import org.maping.maping.external.nexon.dto.character.android.CharacterAndroidEquipmentDTO;
 import org.maping.maping.external.nexon.dto.character.itemEquipment.CharacterItemEquipmentDTO;
 import org.maping.maping.external.nexon.dto.character.matrix.CharacterHexaMatrixDTO;
 import org.maping.maping.external.nexon.dto.character.matrix.CharacterHexaMatrixStatDTO;
@@ -19,13 +20,14 @@ import org.maping.maping.external.nexon.dto.union.UnionRaiderDTO;
 @NoArgsConstructor
 @Data
 @ToString
-public class CharacterInfoDTO {
+public class  CharacterInfoDTO {
     private String Ocid;
     private CharacterBasicDTO Basic;
     private CharacterStatDto Stat;
     private CharacterHyperStatDTO HyperStat;
     private CharacterAbilityDTO Ability;
     private CharacterItemEquipmentDTO ItemEquipment;
+    private CharacterAndroidEquipmentDTO AndroidEquipment;
     private CharacterSymbolEquipmentDTO SymbolEquipment;
     private CharacterSkillDTO Skill5;
     private CharacterSkillDTO Skill6;
