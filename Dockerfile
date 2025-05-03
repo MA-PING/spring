@@ -23,7 +23,7 @@ COPY . .
 RUN ./gradlew clean build -x test
 
 # 실행 단계
-FROM openjdk:23-jdk
+FROM openjdk:24-jdk
 
 ENV TZ=Asia/Seoul
 
