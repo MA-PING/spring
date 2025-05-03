@@ -40,7 +40,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
-	implementation 'org.springframework.security:spring-security-core:6.0.0'
+	implementation 'org.springframework.security:spring-security-core:6.2.8'
 
 	// JWT 관련 의존성 추가 (버전 통일)
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
