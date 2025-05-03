@@ -2,9 +2,9 @@ name: Private Docker
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "jdk23" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "jdk23" ]
 
 jobs:
   build:
