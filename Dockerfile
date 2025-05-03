@@ -5,7 +5,7 @@ FROM ubuntu:20.04 AS builder
 RUN apt-get update && \
     apt-get install -y wget gnupg lsb-release && \
     wget https://download.oracle.com/java/24/latest/jdk-24_linux-x64_bin.deb && \
-    dpkg -i jdk-23_linux-x64_bin.deb && \
+    dpkg -i jdk-24_linux-x64_bin.deb && \
     apt-get install -f && \
     apt-get clean
 
