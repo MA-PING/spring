@@ -61,8 +61,8 @@ RUN ./gradlew clean build -x test
 
 # Stage 2: Runtime - 애플리케이션 실행 환경 (JDK 23 사용)
 # 최종 애플리케이션을 실행할 JDK 23 베이스 이미지 사용
-FROM eclipse-temurin:23-jdk
-# 또는 FROM openjdk:23-jdk 사용 가능
+#FROM eclipse-temurin:23-jdk
+FROM openjdk:23-jdk 
 
 # 타임존 설정
 ENV TZ=Asia/Seoul
