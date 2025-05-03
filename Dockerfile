@@ -39,6 +39,13 @@
 # Gradle 8.12.1 실행과 호환되는 JDK 21 베이스 이미지 사용
 FROM eclipse-temurin:21-jdk AS builder
 
+RUN apt-get update && \
+    # Temurin 23 설치 예시 (패키지 관리자로 설치 가능한지, 정확한 패키지명 확인 필요)
+    apt-get install -y --no-install-recommends temurin-23-jdk && \
+    # 또는 다른 OpenJDK 23 설치 방법 사용 (예: wget/dpkg 등)
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* \
+
 # 작업 디렉토리 설정
 WORKDIR /app
 
@@ -61,8 +68,8 @@ RUN ./gradlew clean build -x test
 
 # Stage 2: Runtime - 애플리케이션 실행 환경 (JDK 23 사용)
 # 최종 애플리케이션을 실행할 JDK 23 베이스 이미지 사용
-#FROM eclipse-temurin:23-jdk
-FROM openjdk:23-jdk 
+FROM eclipse-temurin:23-jdk
+#FROM openjdk:23-jdk
 
 # 타임존 설정
 ENV TZ=Asia/Seoul
