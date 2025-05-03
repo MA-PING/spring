@@ -77,7 +77,6 @@ ENV TZ=Asia/Seoul
 # 작업 디렉토리 설정
 WORKDIR /app
 
-# 빌더 스테이지에서 생성된 JAR 파일만 복사
 # JAR 파일 이름 패턴(*.jar)이 정확한지 확인하세요.
 COPY --from=builder /app/build/libs/*.jar app.jar
 
