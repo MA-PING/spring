@@ -22,7 +22,7 @@ public class CharacterHexaMatrixEquipmentDTO {
     /**
      * 코어 레벨
      */
-    @JsonProperty("hexa_core_name")
+    @JsonProperty("hexa_core_level")
     private Long hexaCoreLevel;
 
     /**
