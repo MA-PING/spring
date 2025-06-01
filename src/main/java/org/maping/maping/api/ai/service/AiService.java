@@ -1,12 +1,12 @@
 package org.maping.maping.api.ai.service;
 
+import com.google.genai.ResponseStream;
+import com.google.genai.types.GenerateContentResponse;
 import org.apache.http.HttpException;
 import org.maping.maping.api.ai.dto.response.AiChatHistoryDetailResponse;
 import org.maping.maping.api.ai.dto.response.AiChatResponse;
 import org.maping.maping.api.ai.dto.response.NoticeSummaryResponse;
 import org.maping.maping.common.response.BaseResponse;
-import org.maping.maping.external.nexon.dto.notice.NoticeUpdateListDTO;
-import org.maping.maping.model.ai.AiHistoryJpaEntity;
 import org.maping.maping.api.ai.dto.response.AiHistoryResponse;
 import reactor.core.publisher.Flux;
 import java.util.Map;
@@ -38,7 +38,7 @@ public interface AiService {
 
     BaseResponse<String> deleteHistory(Long userId, String chatId);
 
-    String getGuestChat(String chatId, String characterName, String type, String ocid, String text) throws HttpException, IOException;
+    Flux<String> getGuestChat(String chatId, String text) throws HttpException, IOException;
 
     Flux<Map<String, Object>> getStreamChat(Long userId, String chatId, String characterName, String type, String ocid, String text);
 }

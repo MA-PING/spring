@@ -1,8 +1,6 @@
 package org.maping.maping.external.gemini;
 
 import com.google.common.collect.ImmutableList;
-import com.google.genai.ResponseStream;
-import com.google.genai.types.GenerateContentConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
@@ -15,7 +13,6 @@ import org.maping.maping.external.nexon.dto.notice.NoticeUpdateListDTO;
 import org.maping.maping.model.ai.NoticeJpaEntity;
 import org.maping.maping.repository.ai.NoticeRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,18 +20,21 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 import com.google.genai.Client;
+import com.google.genai.types.Content;
+import com.google.genai.types.Part;
+import com.google.genai.types.Tool;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.GoogleSearch;
+import com.google.genai.types.GenerateContentConfig;
+import com.google.genai.ResponseStream;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.time.OffsetDateTime;
+
 import org.apache.http.HttpException;
-import com.google.genai.types.Tool;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -49,13 +49,21 @@ public class GEMINIUtils {
     private final String GEMINI_API_KEY;
     private final NEXONUtils nexonUtils;
     private final NoticeRepository noticeRepository;
-
-
+    private final GenerateContentConfig contentConfig;
+    private final Client client;
     private final String Gemini2URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="; //:streamGenerateContent?alt=sse
     private final String Gemini2StreamURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key="; //:streamGenerateContent?alt=sse
+    private final String modelName = "gemini-2.0-flash-001"; // 모델 이름
 
-    public GEMINIUtils(@Value("${spring.gemini.key}") String geminiApiKey, NEXONUtils nexonUtils, NoticeRepository noticeRepository) {
+    public GEMINIUtils(@Value("${spring.gemini.key}") String geminiApiKey, NEXONUtils nexonUtils, NoticeRepository noticeRepository, List<Content> chatHistory) {
         GEMINI_API_KEY = geminiApiKey;
+        this.client = Client.builder().apiKey(GEMINI_API_KEY).build();
+        Tool googleSearchTool = Tool.builder()
+                .googleSearch(GoogleSearch.builder().build())
+                .build();
+        this.contentConfig = GenerateContentConfig.builder()
+                .tools(ImmutableList.of(googleSearchTool))
+                .build();
         this.nexonUtils = nexonUtils;
         this.noticeRepository = noticeRepository;
     }
@@ -134,17 +142,15 @@ public class GEMINIUtils {
 //    }
     //제미나이 검색(구글 검색 X)
     public String getGeminiResponse(String text){
-        GeminiRequestDTO geminiRequestDTO = new GeminiRequestDTO();
-        String fullURL = Gemini2URL + GEMINI_API_KEY;
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+//        Content systemInstruction = Content.fromParts(Part.fromText("You're an expert on Nexon's MapleStory."));
+        GenerateContentConfig config =
+                GenerateContentConfig.builder()
+//                        .systemInstruction(systemInstruction)
+                        .build();
+        GenerateContentResponse response =
+                client.models.generateContent(modelName, text, config);
 
-        geminiRequestDTO.setText(text);
-        String requestBody = geminiRequestDTO.getContents();
-
-        ResponseEntity<GeminiResponseDTO> response = new RestTemplate().exchange(fullURL, HttpMethod.POST, new HttpEntity<>(requestBody, headers), GeminiResponseDTO.class);
-
-        return Objects.requireNonNull(response.getBody()).getCandidates().getFirst().getContent().getParts().getFirst().getText();
+        return response.text();
     }
 
     //제미나이 챗봇(구글 검색 O)
@@ -188,23 +194,47 @@ public class GEMINIUtils {
                 })
                 .doOnComplete(() -> log.info("Stream completed"));
     }
+    public List<Part> setPart(String text){
+        return ImmutableList.of(Part.builder().text(text).build());
+    }
 
-//    //제미나이 스트림 검색(구글 검색 O)
-//    public void getGeminiStreamResponse(String text) throws HttpException, IOException {
-//        Client client = Client.builder().apiKey(GEMINI_API_KEY).build();
-//
-//        Tool googleSearchTool = Tool.builder().googleSearch(GoogleSearch.builder().build()).build();
-//
-//        GenerateContentConfig config =
-//                GenerateContentConfig.builder()
-//                        .tools(ImmutableList.of(googleSearchTool))
-//                        .build();
-//
-//        ResponseStream<GenerateContentResponse> responseStream =
-//                client.models.generateContentStream("gemini-2.0-flash", text, config);
-//        log.info(responseStream.toString());
-//        responseStream.close();
-//    }
+    //제미나이 스트림 검색(구글 검색 O)
+    public ResponseStream<GenerateContentResponse> getNoLoginGeminiStreamResponse(List<Content> promptForModel) throws HttpException, IOException {
+        log.info(String.valueOf(promptForModel));
+        Content systemInstruction = Content.fromParts(Part.fromText("You're an expert on Nexon's MapleStory."));
+        Tool googleSearchTool = Tool.builder().googleSearch(GoogleSearch.builder().build()).build();
+        GenerateContentConfig config =
+                GenerateContentConfig.builder()
+                        .systemInstruction(systemInstruction)
+                        .tools(ImmutableList.of(googleSearchTool))
+                        .build();
+        return client.models.generateContentStream(modelName, promptForModel, config);
+    }
+
+    public Flux<String> getqwerNoLoginGeminiStreamResponse(List<Content> promptForModel, String text) throws HttpException, IOException {
+        GeminiSearchRequestDTO geminiRequestDTO = new GeminiSearchRequestDTO();
+        log.info(String.valueOf(promptForModel));
+        geminiRequestDTO.setText(text);
+        String requestBody = geminiRequestDTO.getContents();
+
+        WebClient webClient = WebClient.builder()
+                .baseUrl(Gemini2StreamURL + GEMINI_API_KEY)
+                .build();
+
+        Flux<GeminiGoogleResponseDTO> eventStream = webClient.post()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .bodyValue(requestBody)
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .retrieve()
+                .bodyToFlux(GeminiGoogleResponseDTO.class);
+
+        return eventStream
+                .map(response -> {
+                    log.info("Response: {}", response.getCandidates().getFirst().getContent().getParts().getFirst().getText());
+                    return response.getCandidates().getFirst().getContent().getParts().getFirst().getText();
+                })
+                .doOnComplete(() -> log.info("Stream completed"));
+    }
 
     //제미나이 스트림 챗봇(구글 검색 O)
     public Flux<String> getGeminiStreamChatResponse(List<AiChatHistoryDTO> history, String text){

@@ -84,8 +84,8 @@ dependencies {
 	// 추가 의존성
 	implementation 'org.springframework.modulith:spring-modulith-events-jpa:1.3.2'
 	implementation 'org.jsoup:jsoup:1.19.1'
-	implementation 'com.google.genai:google-genai:0.2.0'
-
+	implementation 'com.google.genai:google-genai:1.1.0'
+	implementation 'io.reactivex.rxjava3:rxjava:3.1.10'
 	// Spring WebFlux (WebClient 사용을 위함)
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
