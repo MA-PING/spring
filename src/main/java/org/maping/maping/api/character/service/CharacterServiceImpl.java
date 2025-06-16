@@ -59,7 +59,7 @@ public class CharacterServiceImpl implements CharacterService {
             throw new CustomException(ErrorCode.Forbidden, "캐릭터 이름을 입력해주세요.");
         }
         String jaso = nexonUtils.separateJaso(characterName);
-        log.info("service jaso: {}", jaso);
+//        log.info("service jaso: {}", jaso);
         return CharacterSearchRepository.findByJaso(jaso).stream().map(characterConverter::convert).collect(Collectors.toList());
     }
 

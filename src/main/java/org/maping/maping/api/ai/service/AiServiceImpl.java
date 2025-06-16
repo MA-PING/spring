@@ -418,8 +418,20 @@ public class AiServiceImpl implements AiService{
             AiHistoryJpaEntity aiHistoryChatId = aiHistoryRepository.findByChatId(Objects.requireNonNull(chatId));
             log.info(String.valueOf(aiHistoryChatId));
         }
-
-        try {
+        return Flux.create(sink -> {
+            try (ResponseStream<GenerateContentResponse> stream = geminiUtils.getNoLoginGeminiStreamResponse(promptForModel)) {
+                for (GenerateContentResponse response : stream) {
+                    if (response != null && response.text() != null) {
+                        log.info("Streaming chunk: {}", response.text());
+                        sink.next("data: " + response.text() + "\n\n" + " ".repeat(100)); // flush 유도
+                    }
+                }
+                sink.complete();
+            } catch (Exception e) {
+                sink.error(e);
+            }
+        });
+//        try {
 //            ResponseStream<GenerateContentResponse> responseStream = geminiUtils.getNoLoginGeminiStreamResponse(promptForModel);
 //            return  Flux.fromIterable(geminiUtils.getNoLoginGeminiStreamResponse(promptForModel)).map(response -> {
 //                if (response != null && response.text() != null) {
@@ -432,24 +444,23 @@ public class AiServiceImpl implements AiService{
 //            .doOnNext(data -> log.info("Sending data: {}", data.length() > 20 ? data.substring(0,20) + "..." : data))
 //            .doOnError(error -> log.error("Error in SDK stream: ", error))
 //            .doOnComplete(() -> log.info("SDK Stream completed."));
-            return Flux.create(sink -> {
-                try (ResponseStream<GenerateContentResponse> stream = geminiUtils.getNoLoginGeminiStreamResponse(promptForModel)) {
-
-                    for (GenerateContentResponse response : stream) {
-                        if (response != null && response.text() != null) {
-                            log.info(String.valueOf(response.text()));
-                            sink.next("data: " + response.text() + "\n\n");
-                        }
-                    }
-                    sink.complete();
-                } catch (Exception e) {
-                    sink.error(e);
-                }
-            });
-        } catch (Exception e) { // HttpException, IOException 등
-            log.error("Failed to get Gemini stream response: {}", e.getMessage(), e);
-            return Flux.error(e);
-        }
+//            return Flux.create(sink -> {
+//                try (ResponseStream<GenerateContentResponse> stream = geminiUtils.getNoLoginGeminiStreamResponse(promptForModel)) {
+//                    for (GenerateContentResponse response : stream) {
+//                        if (response != null && response.text() != null) {
+//                            log.info(String.valueOf(response.text()));
+//                            sink.next("data: " + response.text() + "\n\n");
+//                        }
+//                    }
+//                    sink.complete();
+//                } catch (Exception e) {
+//                    sink.error(e);
+//                }
+//            });
+//        } catch (Exception e) { // HttpException, IOException 등
+//            log.error("Failed to get Gemini stream response: {}", e.getMessage(), e);
+//            return Flux.error(e);
+//        }
 
 //        return Flux.create(sink -> {
 //            ResponseStream<GenerateContentResponse> responseStream= null;

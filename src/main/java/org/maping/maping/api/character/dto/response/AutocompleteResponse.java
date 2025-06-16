@@ -19,8 +19,8 @@ public class AutocompleteResponse {
     /**
      * 월드 이미지
      */
-    @JsonProperty("world_img")
-    private String worldImage;
+    @JsonProperty("world_name")
+    private String world;
 
     /**
      * 캐릭터 직업

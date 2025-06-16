@@ -14,7 +14,7 @@ public class CharacterConverter implements Converter<CharacterSearchJpaEntity, A
     public AutocompleteResponse convert(CharacterSearchJpaEntity entity) {
         AutocompleteResponse response = new AutocompleteResponse();
         response.setCharacterName(entity.getCharacterName());
-        response.setWorldImage(entity.getWorldImg());
+        response.setWorld(entity.getWorldName());
         response.setCharacterClass(entity.getCharacterClass());
         response.setCharacterLevel(entity.getCharacterLevel());
         response.setCharacterImage(entity.getImage());
