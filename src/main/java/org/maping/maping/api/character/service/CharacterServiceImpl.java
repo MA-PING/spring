@@ -45,7 +45,6 @@ public class CharacterServiceImpl implements CharacterService {
         }
         CharacterDTO characterDto = nexonUtils.getOcid(characterName);
         String ocid = characterDto.getOcid();
-        log.info("service ocid: {}", ocid);
 
         if (ocid == null || ocid.trim().isEmpty()) {
             throw new CustomException(ErrorCode.BadRequest, "유효하지 않은 ocid 입니다.");
@@ -59,7 +58,7 @@ public class CharacterServiceImpl implements CharacterService {
             throw new CustomException(ErrorCode.Forbidden, "캐릭터 이름을 입력해주세요.");
         }
         String jaso = nexonUtils.separateJaso(characterName);
-//        log.info("service jaso: {}", jaso);
+        log.info(jaso);
         return CharacterSearchRepository.findByJaso(jaso).stream().map(characterConverter::convert).collect(Collectors.toList());
     }
 

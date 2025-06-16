@@ -48,10 +48,6 @@ public class CharacterSearchJpaEntity {
     @Column(name = "image", columnDefinition = "TEXT", nullable = false)
     private String image;
 
-    @Size(max = 255)
-    @NotNull
-    @Column(name = "world_img", nullable = false)
-    private String worldImg;
 
     @Size(max = 255)
     @NotNull

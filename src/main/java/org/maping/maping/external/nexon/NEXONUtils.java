@@ -4,10 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.maping.maping.common.enums.expection.ErrorCode;
-import org.maping.maping.external.nexon.dto.character.CharacterBasicDTO;
-import org.maping.maping.external.nexon.dto.character.CharacterDTO;
-import org.maping.maping.external.nexon.dto.character.CharacterInfoDTO;
-import org.maping.maping.external.nexon.dto.character.CharacterListDto;
+import org.maping.maping.external.nexon.dto.character.*;
 import org.maping.maping.external.nexon.dto.character.ability.CharacterAbilityDTO;
 import org.maping.maping.external.nexon.dto.character.android.CharacterAndroidEquipmentDTO;
 import org.maping.maping.external.nexon.dto.character.cashItem.CharacterCashItemEquipmentDTO;
@@ -49,7 +46,7 @@ public class NEXONUtils {
 
     public final String Key;
     private final CharacterSearchRepository characterSearchRepository;
-    private final BlockingQueue<CharacterBasicDTO> jsonQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<CharacterQDTO> jsonQueue = new LinkedBlockingQueue<>();
 
     public NEXONUtils(@Value("${spring.nexon.key}") String key, CharacterSearchRepository characterSearchRepository) {
         this.Key = key;
@@ -553,7 +550,7 @@ public class NEXONUtils {
         if(search){
             new Thread(() -> {
                 try {
-                    jsonQueue.put(characterInfo.getBasic());
+                    jsonQueue.put(getCharacterQDTO(characterInfo.getOcid(), characterInfo.getBasic()));
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -626,6 +623,12 @@ public class NEXONUtils {
         }
     }
 
+    private CharacterQDTO getCharacterQDTO(String ocid, CharacterBasicDTO basic) {
+        CharacterQDTO characterQDTO = new CharacterQDTO();
+        characterQDTO.setOcid(ocid);
+        characterQDTO.setBasic(basic);
+        return characterQDTO;
+    }
 
     public String getWorldImgUrl(String worldName) {
         return switch (worldName) {
@@ -647,8 +650,8 @@ public class NEXONUtils {
         };
     }
 
-    public void setCharacterInfo(CharacterBasicDTO characterInfo) {
-        String characterName = characterInfo.getCharacterName();
+    public void setCharacterInfo(CharacterQDTO characterInfo) {
+        String characterName = characterInfo.getBasic().getCharacterName();
         Optional<CharacterSearchJpaEntity> characterSearch = characterSearchRepository.findByCharacterName(characterName);
 
         CharacterSearchJpaEntity entity;
@@ -656,27 +659,26 @@ public class NEXONUtils {
             entity = CharacterSearchJpaEntity.builder()
                     .id(characterSearch.get().getId())
                     .ocid(characterSearch.get().getOcid())
-                    .characterName(characterInfo.getCharacterName())
-                    .characterLevel(characterInfo.getCharacterLevel())
-                    .worldName(characterInfo.getWorldName())
-                    .characterClass(characterInfo.getCharacterClass())
-                    .image(characterInfo.getCharacterImage())
-                    .worldImg(getWorldImgUrl(characterInfo.getWorldName()))
-                    .guild(characterInfo.getCharacterGuildName())
-                    .jaso(separateJaso(characterInfo.getCharacterName()))
+                    .characterName(characterInfo.getBasic().getCharacterName())
+                    .characterLevel(characterInfo.getBasic().getCharacterLevel())
+                    .worldName(characterInfo.getBasic().getWorldName())
+                    .characterClass(characterInfo.getBasic().getCharacterClass())
+                    .image(characterInfo.getBasic().getCharacterImage())
+                    .guild(characterInfo.getBasic().getCharacterGuildName())
+                    .jaso(separateJaso(characterInfo.getBasic().getCharacterName()))
                     .count(characterSearch.get().getCount() + 1)
                     .createdAt(characterSearch.get().getCreatedAt())
                     .updatedAt(LocalDateTime.now())
                     .build();
         } else {
             entity = CharacterSearchJpaEntity.builder()
-                    .characterName(characterInfo.getCharacterName())
-                    .characterLevel(characterInfo.getCharacterLevel())
-                    .worldName(characterInfo.getWorldName())
-                    .characterClass(characterInfo.getCharacterClass())
-                    .image(characterInfo.getCharacterImage())
-                    .worldImg(getWorldImgUrl(characterInfo.getWorldName()))
-                    .jaso(separateJaso(characterInfo.getCharacterName()))
+                    .ocid(characterInfo.getOcid())
+                    .characterName(characterInfo.getBasic().getCharacterName())
+                    .characterLevel(characterInfo.getBasic().getCharacterLevel())
+                    .worldName(characterInfo.getBasic().getWorldName())
+                    .characterClass(characterInfo.getBasic().getCharacterClass())
+                    .image(characterInfo.getBasic().getCharacterImage())
+                    .jaso(separateJaso(characterInfo.getBasic().getCharacterName()))
                     .count(1)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
@@ -685,57 +687,69 @@ public class NEXONUtils {
         characterSearchRepository.save(entity);
     }
 
-    // 자소 분리 함수
+    // 호환용 자모 배열 (초성, 중성, 종성)
+    private static final char[] CHOSUNG = {'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'};
+    private static final char[] JUNGSUNG = {'ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'};
+    private static final char[] JONGSUNG = {' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'};
+
+    /**
+     * 입력된 문자열을 호환용 자모 단위로 분해합니다.
+     * @param input 분해할 문자열 (예: "나ㅏ")
+     * @return 쉼표로 구분된 자모 문자열 (예: "ㄴ,ㅏ,ㅏ")
+     */
     public String separateJaso(String input) {
-        log.info("separateJaso: {}", input);
         List<String> result = new ArrayList<>();
 
         for (char ch : input.toCharArray()) {
-            // 한글 자모 분해
-            if (isHangul(ch)) {
-                String[] jaso = decomposeHangul(ch);
-                result.addAll(Arrays.asList(jaso));
-            } else {
-                result.add(String.valueOf(ch)); // 한글이 아닌 경우 그대로 추가
+            // 1. 한글 음절인 경우 (가 ~ 힣)
+            if (ch >= 0xAC00 && ch <= 0xD7A3) {
+                result.addAll(decomposeHangul(ch));
+            }
+            // 2. 이미 분리된 한글 자모인 경우 (ㄱ, ㅏ 등)
+            else if (ch >= 0x3130 && ch <= 0x318F) {
+                result.add(String.valueOf(ch)); // 그대로 추가
+            }
+            // 3. 한글이 아닌 경우
+            else {
+                result.add(String.valueOf(ch)); // 그대로 추가
             }
         }
         return String.join(",", result);
     }
 
-    // 한글 여부 확인
-    private static boolean isHangul(char ch) {
-        return ch >= 0xAC00 && ch <= 0xD7A3; // 가 ~ 힣 범위
-    }
+    /**
+     * 한글 음절을 초성, 중성, 종성으로 분해합니다.
+     * @param hangul 분해할 한글 음절
+     * @return 호환용 자모가 담긴 리스트
+     */
+    private static List<String> decomposeHangul(char hangul) {
+        List<String> jasoList = new ArrayList<>();
+        int base = hangul - 0xAC00;
 
-    // 한글 자모 분해
-    private static String[] decomposeHangul(char hangul) {
-        int base = hangul - 0xAC00; // '가'의 유니코드
-        int cho = base / (21 * 28); // 초성
-        int jung = (base % (21 * 28)) / 28; // 중성
-        int jong = base % 28; // 종성
-        String[] jaso;
-        if (jong > 0) {
-            jaso = new String[3];
-            jaso[0] = String.valueOf((char) (0x1100 + cho)); // 초성
-            jaso[1] = String.valueOf((char) (0x1161 + jung)); // 중성
-            jaso[2] = String.valueOf((char) (0x11A7 + jong)); // 종성
-        } else {
-            jaso = new String[2];
-            jaso[0] = String.valueOf((char) (0x1100 + cho)); // 초성
-            jaso[1] = String.valueOf((char) (0x1161 + jung)); // 중성
+        int choIndex = base / (21 * 28);
+        int jungIndex = (base % (21 * 28)) / 28;
+        int jongIndex = base % 28;
+
+        // 초성 추가
+        jasoList.add(String.valueOf(CHOSUNG[choIndex]));
+        // 중성 추가
+        jasoList.add(String.valueOf(JUNGSUNG[jungIndex]));
+
+        // 종성이 있는 경우에만 추가
+        if (jongIndex > 0) {
+            jasoList.add(String.valueOf(JONGSUNG[jongIndex]));
         }
 
-        log.info("decomposeHangul: {}", (Object) jaso);
-        return jaso;
+        return jasoList;
     }
 
-    @Scheduled(fixedDelay = 1000 * 30) //15분 1000 * 60 * 15 , 30초 1000 * 30
+    @Scheduled(fixedDelay = 1000 * 10) //15분 1000 * 60 * 15 , 30초 1000 * 30
     public void setCharacterSearch() {
         while (!jsonQueue.isEmpty()) {
-            CharacterBasicDTO basic = jsonQueue.poll();
+            CharacterQDTO basic = jsonQueue.poll();
             if (basic != null) {
                 setCharacterInfo(basic);
-                log.info("캐릭터 검색 테이블 삽입: {}", basic.getCharacterName());
+                log.info("캐릭터 검색 테이블 삽입: {}", basic.getBasic().getCharacterName());
             }
         }
     }

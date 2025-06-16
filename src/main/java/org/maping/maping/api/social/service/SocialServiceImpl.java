@@ -55,7 +55,6 @@ public class SocialServiceImpl implements SocialService {
                             .worldName(c.getWorldName() != null ? c.getWorldName() : "")
                             .characterClass(c.getCharacterClass() != null ? c.getCharacterClass() : "")
                             .image(c.getImage() != null ? c.getImage() : "")
-                            .worldImg(c.getWorldImg() != null ? c.getWorldImg() : "")
                             .guild(c.getGuild() != null ? c.getGuild() : "")
                             .build();
                 })
