@@ -13,25 +13,25 @@ public class AutocompleteResponse {
     /**
      * 캐릭터 명
      */
-    @JsonProperty("character_name")
+    @JsonProperty("characterName")
     private String characterName;
 
     /**
      * 월드 이미지
      */
-    @JsonProperty("world_name")
+    @JsonProperty("world")
     private String world;
 
     /**
      * 캐릭터 직업
      */
-    @JsonProperty("character_class")
+    @JsonProperty("className")
     private String characterClass;
 
     /**
      * 캐릭터 레벨
      */
-    @JsonProperty("character_level")
+    @JsonProperty("level")
     private long characterLevel;
 
     /**
