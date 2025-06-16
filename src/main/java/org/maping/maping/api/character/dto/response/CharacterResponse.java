@@ -13,7 +13,7 @@ public class CharacterResponse {
 
     private String worldName;
 
-    private String worldImage;
+    private String world;
 
     private String characterClass;
 

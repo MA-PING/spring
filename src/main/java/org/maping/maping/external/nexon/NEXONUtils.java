@@ -630,26 +630,6 @@ public class NEXONUtils {
         return characterQDTO;
     }
 
-    public String getWorldImgUrl(String worldName) {
-        return switch (worldName) {
-            case "노바" -> "https://lh3.google.com/u/0/d/1Wx3lx6-Qe8Hm8S7lNwlNGtiSemJ5X9Pv=w1920-h968-iv1";
-            case "레드" -> "https://lh3.google.com/u/0/d/1a9YYUARXdVzUUu-aUarHgyJdqNBx5Mbf=w1920-h968-iv1";
-            case "루나" -> "https://lh3.google.com/u/0/d/1mZPYCSxll88VLUr4cGFVEGhb_kJ5k6CJ=w2000-h1668-iv1";
-            case "베라" -> "https://lh3.google.com/u/0/d/1wJiCzHW8Rk1nr7JsHZUcsBtoiMRT8Isz=w2000-h1668-iv1";
-            case "스카니아" -> "https://lh3.google.com/u/0/d/1fVg6ThMqPJsEg9KuypXHUtUFnlboUwFN=w2000-h1668-iv1";
-            case "아케인" -> "https://lh3.google.com/u/0/d/1IcE7Xx1RUTJTF6HGsX40pptB9kXEmZC3=w2000-h1668-iv1";
-            case "엘리시움" -> "https://lh3.google.com/u/0/d/1cLtG3h4EKuMzhtzG4PkJhQBTVatZQssE=w2000-h1668-iv1";
-            case "오로라" -> "https://lh3.google.com/u/0/d/1tUc4BMDtIUAUIKH47nkZwbQcFqta_B-T=w2000-h1668-iv1";
-            case "유니온" -> "https://lh3.google.com/u/0/d/1RiRArYAAJ3FDOfInklir6vficLOGAT8q=w1920-h968-iv1";
-            case "이노시스" -> "https://lh3.google.com/u/0/d/1W7mw46omb1PjNFA61W6InL3n3fT5OnWn=w2000-h1668-iv1";
-            case "제니스" -> "https://lh3.google.com/u/0/d/1Y7kwZO5DeE3PouKnkTrQYGKiNavKpwUz=w2000-h1668-iv1";
-            case "크로아" -> "https://lh3.google.com/u/0/d/1HTAKqVQ8QxFrWZO6mkEW9_pdy314zSSN=w2000-h1668-iv1";
-            case "에오스" -> "https://lh3.google.com/u/0/d/1WKmBiemmm5LHCdt6VJ4pDj5HlviWWxkI=w1920-h968-iv1";
-            case "핼리오스" -> "https://lh3.google.com/u/0/d/11kV1yU4St0EQIx_u26P3_lQ-Xf4v0_-j=w2000-h1668-iv1";
-            case null, default -> new CustomException(ErrorCode.NotFound, worldName).getMessage();
-        };
-    }
-
     public void setCharacterInfo(CharacterQDTO characterInfo) {
         String characterName = characterInfo.getBasic().getCharacterName();
         Optional<CharacterSearchJpaEntity> characterSearch = characterSearchRepository.findByCharacterName(characterName);
@@ -692,11 +672,6 @@ public class NEXONUtils {
     private static final char[] JUNGSUNG = {'ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'};
     private static final char[] JONGSUNG = {' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'};
 
-    /**
-     * 입력된 문자열을 호환용 자모 단위로 분해합니다.
-     * @param input 분해할 문자열 (예: "나ㅏ")
-     * @return 쉼표로 구분된 자모 문자열 (예: "ㄴ,ㅏ,ㅏ")
-     */
     public String separateJaso(String input) {
         List<String> result = new ArrayList<>();
 
@@ -743,11 +718,12 @@ public class NEXONUtils {
         return jasoList;
     }
 
-    @Scheduled(fixedDelay = 1000 * 10) //15분 1000 * 60 * 15 , 30초 1000 * 30
+    @Scheduled(fixedDelay = 1000 * 60) //15분 1000 * 60 * 15 , 30초 1000 * 30
     public void setCharacterSearch() {
         while (!jsonQueue.isEmpty()) {
             CharacterQDTO basic = jsonQueue.poll();
             if (basic != null) {
+                log.info("캐릭터 검색 테이블 삽입: {}", basic.getBasic().getCharacterName());
                 setCharacterInfo(basic);
                 log.info("캐릭터 검색 테이블 삽입: {}", basic.getBasic().getCharacterName());
             }

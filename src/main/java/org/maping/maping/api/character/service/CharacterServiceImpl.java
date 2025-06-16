@@ -111,7 +111,7 @@ public class CharacterServiceImpl implements CharacterService {
         return CharacterResponse.builder()
                 .characterName(characterBasicDTO.getCharacterName())
                 .worldName(characterBasicDTO.getWorldName())
-                .worldImage(nexonUtils.getWorldImgUrl(characterBasicDTO.getWorldName()))
+                .world(characterBasicDTO.getWorldName())
                 .characterClass(characterBasicDTO.getCharacterClass())
                 .characterLevel(characterBasicDTO.getCharacterLevel())
                 .characterGuildName(characterBasicDTO.getCharacterGuildName())
