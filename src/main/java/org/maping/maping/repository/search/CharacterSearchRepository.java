@@ -17,6 +17,6 @@ public interface CharacterSearchRepository extends JpaRepository<CharacterSearch
 
     Optional<CharacterSearchJpaEntity> findByCharacterName(String characterName);
 
-    @Query("SELECT a FROM CharacterSearchJpaEntity a WHERE a.jaso LIKE CONCAT('%', :jaso, '%') ORDER BY a.count DESC LIMIT 5")
+    @Query("SELECT a FROM CharacterSearchJpaEntity a WHERE a.jaso LIKE CONCAT(:jaso, '%') ORDER BY a.count DESC LIMIT 5")
     List<CharacterSearchJpaEntity> findByJaso(@Param ("jaso") @Size(max = 255) @NotNull String jaso);
 }

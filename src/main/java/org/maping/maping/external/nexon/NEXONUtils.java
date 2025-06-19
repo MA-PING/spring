@@ -723,7 +723,6 @@ public class NEXONUtils {
         while (!jsonQueue.isEmpty()) {
             CharacterQDTO basic = jsonQueue.poll();
             if (basic != null) {
-                log.info("캐릭터 검색 테이블 삽입: {}", basic.getBasic().getCharacterName());
                 setCharacterInfo(basic);
                 log.info("캐릭터 검색 테이블 삽입: {}", basic.getBasic().getCharacterName());
             }
