@@ -211,31 +211,6 @@ public class GEMINIUtils {
         return client.models.generateContentStream(modelName, promptForModel, config);
     }
 
-    public Flux<String> getqwerNoLoginGeminiStreamResponse(List<Content> promptForModel, String text) throws HttpException, IOException {
-        GeminiSearchRequestDTO geminiRequestDTO = new GeminiSearchRequestDTO();
-        log.info(String.valueOf(promptForModel));
-        geminiRequestDTO.setText(text);
-        String requestBody = geminiRequestDTO.getContents();
-
-        WebClient webClient = WebClient.builder()
-                .baseUrl(Gemini2StreamURL + GEMINI_API_KEY)
-                .build();
-
-        Flux<GeminiGoogleResponseDTO> eventStream = webClient.post()
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .bodyValue(requestBody)
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(GeminiGoogleResponseDTO.class);
-
-        return eventStream
-                .map(response -> {
-                    log.info("Response: {}", response.getCandidates().getFirst().getContent().getParts().getFirst().getText());
-                    return response.getCandidates().getFirst().getContent().getParts().getFirst().getText();
-                })
-                .doOnComplete(() -> log.info("Stream completed"));
-    }
-
     //제미나이 스트림 챗봇(구글 검색 O)
     public Flux<String> getGeminiStreamChatResponse(List<AiChatHistoryDTO> history, String text){
         GeminiChatRequestDTO geminiChatRequestDTO = new GeminiChatRequestDTO();
@@ -267,11 +242,12 @@ public class GEMINIUtils {
     //제미나이 검색(구글 검색 O)
     public String getGeminiGoogleResponse(String text) throws HttpException, IOException {
         Client client = Client.builder().apiKey(GEMINI_API_KEY).build();
-
+        Content systemInstruction = Content.fromParts(Part.fromText("You're an expert on Nexon's MapleStory."));
         Tool googleSearchTool = Tool.builder().googleSearch(GoogleSearch.builder().build()).build();
 
         GenerateContentConfig config =
                 GenerateContentConfig.builder()
+                        .systemInstruction(systemInstruction)
                         .tools(ImmutableList.of(googleSearchTool))
                         .build();
 

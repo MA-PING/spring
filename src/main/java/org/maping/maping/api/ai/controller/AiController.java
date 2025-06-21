@@ -127,7 +127,7 @@ public class AiController {
     @Operation(summary = "비로그인 챗봇 대화", description = "GEMINI 챗봇 대화하는 API")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping(value = "chat/stream/guest", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> getNoLoginChat(@RequestBody AiChatRequest requestDTO) throws HttpException, IOException {
+    public Flux<Map<String, Object>> getNoLoginChat(@RequestBody AiChatRequest requestDTO) throws HttpException, IOException {
         log.info(String.valueOf(requestDTO.getChatId()), requestDTO.getOcid(), requestDTO.getText());
         return aiServiceImpl.getGuestChat(requestDTO.getChatId(),requestDTO.getText());
     }

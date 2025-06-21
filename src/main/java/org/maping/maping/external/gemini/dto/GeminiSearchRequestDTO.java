@@ -18,6 +18,13 @@ public class GeminiSearchRequestDTO {
         public void setText(String text) {
             this.contents = String.format("""
 {
+"system_instruction": {
+      "parts": [
+        {
+          "text": "You are the AI assistant of the Maple Story game. Answer questions about MapleStory games."
+        }
+      ]
+    },
     "contents": [
         {
             "parts": [

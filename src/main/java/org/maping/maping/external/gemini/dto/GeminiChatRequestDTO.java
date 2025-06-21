@@ -15,6 +15,13 @@ public class GeminiChatRequestDTO {
     public void setText(String user, String model, String text) {
         this.contents = String.format("""
 {
+    "system_instruction": {
+      "parts": [
+        {
+          "text": "You are the AI assistant of the Maple Story game. Answer questions about MapleStory games."
+        }
+      ]
+    },
     "contents": [
         {"role": "user",
          "parts": [{

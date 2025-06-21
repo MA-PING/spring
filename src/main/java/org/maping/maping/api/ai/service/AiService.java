@@ -38,7 +38,7 @@ public interface AiService {
 
     BaseResponse<String> deleteHistory(Long userId, String chatId);
 
-    Flux<String> getGuestChat(String chatId, String text) throws HttpException, IOException;
+    Flux<Map<String, Object>> getGuestChat(String chatId, String text) throws HttpException, IOException;
 
     Flux<Map<String, Object>> getStreamChat(Long userId, String chatId, String characterName, String type, String ocid, String text);
 }

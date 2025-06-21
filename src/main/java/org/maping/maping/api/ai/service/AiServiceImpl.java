@@ -402,87 +402,52 @@ public class AiServiceImpl implements AiService{
     }
 
     @Override
-    public Flux<String> getGuestChat(String chatId, String text) throws HttpException, IOException {
+    public Flux<Map<String, Object>> getGuestChat(String chatId, String text) throws HttpException, IOException {
+        UserInfoJpaEntity userInfoJpaEntity = userRepository.findById(11L).orElse(null);
+        final List<AiChatHistoryDTO>[] HistoryListDTO = new List[]{new ArrayList<>()};
+        List<AiChatHistoryDTO> HistoryList = new ArrayList<>();
         final String uuid = UUID.randomUUID().toString();
-        List<Content> promptForModel = new ArrayList<>(List.of());
-        final List<String> contentList = new ArrayList<>();
-        if (text == null) {
-            throw new CustomException(ErrorCode.BadRequest, "텍스트는 필수입니다.");
-        }
-        if(chatId == null){
-            promptForModel.add(Content.builder()
-                    .role("user")
-                    .parts(setPart(text))
-                    .build());
-        }else{
-            AiHistoryJpaEntity aiHistoryChatId = aiHistoryRepository.findByChatId(Objects.requireNonNull(chatId));
-            log.info(String.valueOf(aiHistoryChatId));
-        }
+        final List<String> contentList = new ArrayList<>(); // 결과를 모을 리스트 추가
+
         return Flux.create(sink -> {
-            try (ResponseStream<GenerateContentResponse> stream = geminiUtils.getNoLoginGeminiStreamResponse(promptForModel)) {
-                for (GenerateContentResponse response : stream) {
-                    if (response != null && response.text() != null) {
-                        log.info("Streaming chunk: {}", response.text());
-                        sink.next("data: " + response.text() + "\n\n" + " ".repeat(100)); // flush 유도
-                    }
+            Flux<String> content;
+
+            if (chatId == null) {
+                content = geminiUtils.getGeminiStreamResponse(text);
+                String topic = geminiUtils.getGeminiResponse(text + "\n 이 내용에 대한 간단한 요약으로 30자 이내로 알려줘.");
+                content.subscribe(c -> {
+                    guestEmitResponse(sink, uuid, topic, c);
+                    contentList.add(c); // 결과를 리스트에 추가
+                }, sink::error, () -> {
+                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(null, "null", "null", text, contentConvert(contentList));
+                    HistoryList.add(aiChatHistoryDTO);
+                    saveAiHistory(uuid, userInfoJpaEntity, topic, setAiHistoryConvert.getHistoryJson(HistoryList));
+                    sink.complete();
+                });
+
+            } else {
+                AiHistoryJpaEntity aiHistoryChatId = aiHistoryRepository.findByChatId(Objects.requireNonNull(chatId));
+
+                if (aiHistoryChatId == null) {
+                    sink.error(new CustomException(ErrorCode.NotFound, "챗봇 대화가 존재하지 않습니다."));
+                    return;
                 }
-                sink.complete();
-            } catch (Exception e) {
-                sink.error(e);
+
+                HistoryListDTO[0] = setAiHistoryConvert.setAiHistoryConvert(Objects.requireNonNull(aiHistoryChatId).getContent());
+                content = geminiUtils.getGeminiStreamChatResponse(HistoryListDTO[0], text);
+                content.subscribe(c -> {
+                    guestEmitResponse(sink, uuid, aiHistoryChatId.getTopic(), c);
+                    contentList.add(c);
+                }, sink::error, () -> {
+                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(null, "null", "null", text, contentConvert(contentList));
+                    HistoryListDTO[0].add(aiChatHistoryDTO);
+                    aiHistoryChatId.setUpdatedAt(LocalDateTime.now());
+                    aiHistoryChatId.setContent(setAiHistoryConvert.getHistoryJson(HistoryListDTO[0]));
+                    aiHistoryRepository.save(aiHistoryChatId);
+                    sink.complete();
+                });
             }
         });
-//        try {
-//            ResponseStream<GenerateContentResponse> responseStream = geminiUtils.getNoLoginGeminiStreamResponse(promptForModel);
-//            return  Flux.fromIterable(geminiUtils.getNoLoginGeminiStreamResponse(promptForModel)).map(response -> {
-//                if (response != null && response.text() != null) {
-//                    log.info("SDK Stream Chunk: {}", response.text()); // 각 청크 로깅
-//                    return response.text();
-//                }
-//                return ""; // 빈 텍스트 또는 오류 처리
-//            })
-//            .doOnSubscribe(s -> log.info("SDK Stream Subscription started."))
-//            .doOnNext(data -> log.info("Sending data: {}", data.length() > 20 ? data.substring(0,20) + "..." : data))
-//            .doOnError(error -> log.error("Error in SDK stream: ", error))
-//            .doOnComplete(() -> log.info("SDK Stream completed."));
-//            return Flux.create(sink -> {
-//                try (ResponseStream<GenerateContentResponse> stream = geminiUtils.getNoLoginGeminiStreamResponse(promptForModel)) {
-//                    for (GenerateContentResponse response : stream) {
-//                        if (response != null && response.text() != null) {
-//                            log.info(String.valueOf(response.text()));
-//                            sink.next("data: " + response.text() + "\n\n");
-//                        }
-//                    }
-//                    sink.complete();
-//                } catch (Exception e) {
-//                    sink.error(e);
-//                }
-//            });
-//        } catch (Exception e) { // HttpException, IOException 등
-//            log.error("Failed to get Gemini stream response: {}", e.getMessage(), e);
-//            return Flux.error(e);
-//        }
-
-//        return Flux.create(sink -> {
-//            ResponseStream<GenerateContentResponse> responseStream= null;
-//            try {
-//                String topic = geminiUtils.getGeminiResponse(text + "\n 이 내용에 대한 간단한 요약으로 30자 이내로 알려줘.");
-//                Flux<String> content = geminiUtils.getqwerNoLoginGeminiStreamResponse(promptForModel, text);
-//                for(GenerateContentResponse response : geminiUtils.getNoLoginGeminiStreamResponse(promptForModel)) {
-//                    guestEmitResponse(sink, uuid, topic, response.text());
-//                    contentList.add(response.text());
-//                }
-//                content.subscribe(c -> {
-//                    guestEmitResponse(sink, uuid, topic, c);
-//                    contentList.add(c);
-//                }, sink::error, () -> {
-//                    sink.complete();
-//                });
-
-//            } catch (Exception e) {
-//                log.error("ResponseStream을 Flux로 변환 중 오류 발생: {}", e.getMessage(), e);
-//                sink.error(e); // Flux 구독자에게 에러 신호를 보냅니다.
-//            }
-//        });
     }
     private void guestEmitResponse(FluxSink<Map<String, Object>> sink, String uuid, String topic, String content) {
         Map<String, Object> response = new HashMap<>();
