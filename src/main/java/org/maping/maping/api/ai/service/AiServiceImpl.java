@@ -403,6 +403,7 @@ public class AiServiceImpl implements AiService{
 
     @Override
     public Flux<Map<String, Object>> getGuestChat(String chatId, String text) throws HttpException, IOException {
+        log.info("chatId: {}, text: {}", chatId, text);
         UserInfoJpaEntity userInfoJpaEntity = userRepository.findById(11L).orElse(null);
         final List<AiChatHistoryDTO>[] HistoryListDTO = new List[]{new ArrayList<>()};
         List<AiChatHistoryDTO> HistoryList = new ArrayList<>();
@@ -414,7 +415,7 @@ public class AiServiceImpl implements AiService{
 
             if (chatId == null) {
                 content = geminiUtils.getGeminiStreamResponse(text);
-                String topic = geminiUtils.getGeminiResponse(text + "\n 이 내용에 대한 간단한 요약으로 30자 이내로 알려줘.");
+                String topic = geminiUtils.getGeminiResponse(text + "\n 사용자의 위 질문에 대한 답변으로, 대화의 주제를 명확하고 간결하게 2~3단어 이내로 요약해서 추출해줘.");
                 content.subscribe(c -> {
                     guestEmitResponse(sink, uuid, topic, c);
                     contentList.add(c); // 결과를 리스트에 추가
@@ -472,7 +473,7 @@ public class AiServiceImpl implements AiService{
 
             if (chatId == null && ocid == null && type == null) {
                 content = geminiUtils.getGeminiStreamResponse(text);
-                String topic = geminiUtils.getGeminiResponse(text + "\n 이 내용에 대한 간단한 요약으로 30자 이내로 알려줘.");
+                String topic = geminiUtils.getGeminiResponse(text + "\n 사용자의 위 질문에 대한 답변으로, 대화의 주제를 명확하고 간결하게 2~3단어 이내로 요약해서 추출해줘.");
                 content.subscribe(c -> {
                     emitResponse(sink, uuid, characterName, type, ocid, topic, c);
                     contentList.add(c); // 결과를 리스트에 추가

@@ -89,7 +89,7 @@ public class GeminiString {
               {
                 "parts": [
                   {
-                    "text": "Hello there"
+                    "text": "%s"
                   }
                 ]
               }
