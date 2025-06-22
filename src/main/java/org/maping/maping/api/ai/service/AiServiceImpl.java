@@ -170,8 +170,8 @@ public class AiServiceImpl implements AiService{
                 .ocid(ocid)
                 .characterName(characterName)
                 .type(type)
-                .answer(text)
-                .question(content)
+                .answer(content)
+                .question(text)
                 .build();
     }
 
@@ -427,12 +427,14 @@ public class AiServiceImpl implements AiService{
 
             } else {
                 AiHistoryJpaEntity aiHistoryChatId = aiHistoryRepository.findByChatId(Objects.requireNonNull(chatId));
-
                 if (aiHistoryChatId == null) {
                     sink.error(new CustomException(ErrorCode.NotFound, "챗봇 대화가 존재하지 않습니다."));
                     return;
                 }
-
+                if(!aiHistoryChatId.getUser().equals(userInfoJpaEntity)) {
+                    sink.error(new CustomException(ErrorCode.NotFound, "접근 할 수 없습니다."));
+                    return;
+                }
                 HistoryListDTO[0] = setAiHistoryConvert.setAiHistoryConvert(Objects.requireNonNull(aiHistoryChatId).getContent());
                 content = geminiUtils.getGeminiStreamChatResponse(HistoryListDTO[0], text);
                 content.subscribe(c -> {

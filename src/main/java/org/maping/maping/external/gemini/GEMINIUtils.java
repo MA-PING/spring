@@ -31,6 +31,7 @@ import com.google.genai.ResponseStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -50,13 +51,15 @@ public class GEMINIUtils {
     private final NEXONUtils nexonUtils;
     private final NoticeRepository noticeRepository;
     private final GenerateContentConfig contentConfig;
+    private final GeminiString geminiString;
     private final Client client;
     private final String Gemini2URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="; //:streamGenerateContent?alt=sse
     private final String Gemini2StreamURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key="; //:streamGenerateContent?alt=sse
     private final String modelName = "gemini-2.0-flash-001"; // 모델 이름
 
-    public GEMINIUtils(@Value("${spring.gemini.key}") String geminiApiKey, NEXONUtils nexonUtils, NoticeRepository noticeRepository, List<Content> chatHistory) {
+    public GEMINIUtils(@Value("${spring.gemini.key}") String geminiApiKey, NEXONUtils nexonUtils, NoticeRepository noticeRepository, List<Content> chatHistory, GeminiString geminiString) {
         GEMINI_API_KEY = geminiApiKey;
+        this.geminiString = geminiString;
         this.client = Client.builder().apiKey(GEMINI_API_KEY).build();
         Tool googleSearchTool = Tool.builder()
                 .googleSearch(GoogleSearch.builder().build())
@@ -172,11 +175,7 @@ public class GEMINIUtils {
 
     //제미나이 스트림 검색(구글 검색 O)
     public Flux<String> getGeminiStreamResponse(String text){
-        GeminiSearchRequestDTO geminiRequestDTO = new GeminiSearchRequestDTO();
-
-        geminiRequestDTO.setText(text);
-        String requestBody = geminiRequestDTO.getContents();
-
+        String requestBody = geminiString.content(text);
         WebClient webClient = WebClient.builder()
                 .baseUrl(Gemini2StreamURL + GEMINI_API_KEY)
                 .build();
@@ -213,21 +212,33 @@ public class GEMINIUtils {
 
     //제미나이 스트림 챗봇(구글 검색 O)
     public Flux<String> getGeminiStreamChatResponse(List<AiChatHistoryDTO> history, String text){
-        GeminiChatRequestDTO geminiChatRequestDTO = new GeminiChatRequestDTO();
 
-        String user = history.getLast().getQuestion();
-        String model = history.getLast().getAnswer();
+        List<String> chatHistory = new ArrayList<>();
+        int historySize = history.size();
+        List<AiChatHistoryDTO> recentHistory;
 
-        geminiChatRequestDTO.setText(user, model, text);
-        String requestBody = geminiChatRequestDTO.getContents();
+        if (historySize > 10) {
+            recentHistory = history.subList(historySize - 10, historySize);
+        } else {
+            recentHistory = history;
+        }
 
+        for (AiChatHistoryDTO chat : recentHistory) {
+            chatHistory.add(geminiString.parts("user", chat.getQuestion()));
+            chatHistory.add(geminiString.parts("model", chat.getAnswer()));
+        }
+        chatHistory.add(geminiString.parts("user", text));
+
+        String contents = geminiString.contents(chatHistory);
+        String googleSearch = geminiString.googleSearch(contents);
+        log.info(googleSearch);
         WebClient webClient = WebClient.builder()
                 .baseUrl(Gemini2StreamURL + GEMINI_API_KEY)
                 .build();
 
         Flux<GeminiGoogleResponseDTO> eventStream = webClient.post()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .bodyValue(requestBody)
+                .bodyValue(googleSearch)
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve()
                 .bodyToFlux(GeminiGoogleResponseDTO.class);
