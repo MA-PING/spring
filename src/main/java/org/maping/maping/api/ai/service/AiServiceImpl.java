@@ -165,13 +165,14 @@ public class AiServiceImpl implements AiService{
         }).toList();
     }
 
-    public AiChatHistoryDTO historyDto(@Nullable String ocid, @Nullable String characterName, @Nullable String type, String text, String content){
+    public AiChatHistoryDTO historyDto(@Nullable String ocid, @Nullable String characterName, @Nullable String type, String text, String content, String timestamp){
         return AiChatHistoryDTO.builder()
                 .ocid(ocid)
                 .characterName(characterName)
                 .type(type)
                 .answer(content)
                 .question(text)
+                .timestamp(timestamp)
                 .build();
     }
 
@@ -320,12 +321,13 @@ public class AiServiceImpl implements AiService{
         AiHistoryJpaEntity aiHistoryJpaEntity = new AiHistoryJpaEntity();
         List<AiChatHistoryDTO> HistoryListDTO = new ArrayList<>();
         String content;
+        final String now = String.valueOf(LocalDateTime.now());
         if(chatId == null & ocid == null & type == null) {
             content = geminiUtils.getGeminiGoogleResponse(text);
             String topic = geminiUtils.getGeminiResponse(text + "\n 이 내용에 대해 짧게 요약해줘.");
 
             //DTO에 값 넣기
-            AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, content);
+            AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, content, now);
 
             //JPA에 값 넣기
             HistoryListDTO.add(aiChatHistoryDTO);
@@ -345,7 +347,7 @@ public class AiServiceImpl implements AiService{
             content = geminiUtils.getGeminiChatResponse(HistoryListDTO, text);
 
             //DTO에 값 넣기
-            AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, content);
+            AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, content, now);
 
             HistoryListDTO.add(aiChatHistoryDTO);
             aiHistoryChatId.setUpdatedAt(LocalDateTime.now());
@@ -363,7 +365,7 @@ public class AiServiceImpl implements AiService{
             content = geminiUtils.getGeminiGoogleResponse(typeText);
 
             //JPA에 값 넣기
-            HistoryListDTO.add(historyDto(ocid, characterName, type, text, content));
+            HistoryListDTO.add(historyDto(ocid, characterName, type, text, content, now));
             String savedEntity = saveAiHistory(UUID.randomUUID().toString(), userInfoJpaEntity, topic, setAiHistoryConvert.getHistoryJson(HistoryListDTO));
             log.info("chatId: {}, type: {}", aiHistoryJpaEntity.getChatId(), type);
 
@@ -383,7 +385,7 @@ public class AiServiceImpl implements AiService{
             content = geminiUtils.getGeminiChatResponse(HistoryListDTO, typeText);
 
             //DTO에 값 넣기
-            AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, content);
+            AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, content, now);
 
             //JPA에 값 넣기
             HistoryListDTO.add(aiChatHistoryDTO);
@@ -409,7 +411,7 @@ public class AiServiceImpl implements AiService{
         List<AiChatHistoryDTO> HistoryList = new ArrayList<>();
         final String uuid = UUID.randomUUID().toString();
         final List<String> contentList = new ArrayList<>(); // 결과를 모을 리스트 추가
-
+        final String now = String.valueOf(LocalDateTime.now());
         return Flux.create(sink -> {
             Flux<String> content;
 
@@ -420,7 +422,7 @@ public class AiServiceImpl implements AiService{
                     guestEmitResponse(sink, uuid, topic, c);
                     contentList.add(c); // 결과를 리스트에 추가
                 }, sink::error, () -> {
-                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(null, "null", "null", text, contentConvert(contentList));
+                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(null, "null", "null", text, contentConvert(contentList), now);
                     HistoryList.add(aiChatHistoryDTO);
                     saveAiHistory(uuid, userInfoJpaEntity, topic, setAiHistoryConvert.getHistoryJson(HistoryList));
                     sink.complete();
@@ -442,7 +444,7 @@ public class AiServiceImpl implements AiService{
                     guestEmitResponse(sink, uuid, aiHistoryChatId.getTopic(), c);
                     contentList.add(c);
                 }, sink::error, () -> {
-                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(null, "null", "null", text, contentConvert(contentList));
+                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(null, "null", "null", text, contentConvert(contentList), now);
                     HistoryListDTO[0].add(aiChatHistoryDTO);
                     aiHistoryChatId.setUpdatedAt(LocalDateTime.now());
                     aiHistoryChatId.setContent(setAiHistoryConvert.getHistoryJson(HistoryListDTO[0]));
@@ -467,7 +469,7 @@ public class AiServiceImpl implements AiService{
         List<AiChatHistoryDTO> HistoryList = new ArrayList<>();
         final String uuid = UUID.randomUUID().toString();
         final List<String> contentList = new ArrayList<>(); // 결과를 모을 리스트 추가
-
+        final String now = String.valueOf(LocalDateTime.now());
         return Flux.create(sink -> {
             Flux<String> content;
 
@@ -478,7 +480,7 @@ public class AiServiceImpl implements AiService{
                     emitResponse(sink, uuid, characterName, type, ocid, topic, c);
                     contentList.add(c); // 결과를 리스트에 추가
                 }, sink::error, () -> {
-                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, contentConvert(contentList));
+                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, contentConvert(contentList), now);
                     HistoryList.add(aiChatHistoryDTO);
                     saveAiHistory(uuid, userInfoJpaEntity, topic, setAiHistoryConvert.getHistoryJson(HistoryList));
                     sink.complete();
@@ -498,7 +500,7 @@ public class AiServiceImpl implements AiService{
                     emitResponse(sink, uuid, characterName, type, ocid, aiHistoryChatId.getTopic(), c);
                     contentList.add(c);
                 }, sink::error, () -> {
-                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, contentConvert(contentList));
+                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, contentConvert(contentList), now);
                     HistoryListDTO[0].add(aiChatHistoryDTO);
                     aiHistoryChatId.setUpdatedAt(LocalDateTime.now());
                     aiHistoryChatId.setContent(setAiHistoryConvert.getHistoryJson(HistoryListDTO[0]));
@@ -519,7 +521,7 @@ public class AiServiceImpl implements AiService{
                     emitResponse(sink, uuid, characterName, type, ocid, topic, c);
                     contentList.add(c);
                 }, sink::error, () -> {
-                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, contentConvert(contentList));
+                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, contentConvert(contentList), now);
                     HistoryListDTO[0].add(aiChatHistoryDTO);
                     saveAiHistory(uuid, userInfoJpaEntity, topic, setAiHistoryConvert.getHistoryJson(HistoryListDTO[0]));
                     sink.complete();
@@ -543,7 +545,7 @@ public class AiServiceImpl implements AiService{
                     emitResponse(sink, uuid, characterName, type, ocid, aiHistoryChatId.getTopic(), c);
                     contentList.add(c);
                 }, sink::error, () -> {
-                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, contentConvert(contentList));
+                    AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, contentConvert(contentList), now);
                     HistoryListDTO[0].add(aiChatHistoryDTO);
                     aiHistoryChatId.setUpdatedAt(LocalDateTime.now());
                     aiHistoryChatId.setContent(setAiHistoryConvert.getHistoryJson(HistoryListDTO[0]));

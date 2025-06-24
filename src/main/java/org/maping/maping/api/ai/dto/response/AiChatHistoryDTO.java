@@ -24,4 +24,7 @@ public class AiChatHistoryDTO {
 
     @JsonProperty("answer")
     private String answer;
+
+    @JsonProperty("timestamp")
+    private String timestamp;
 }
