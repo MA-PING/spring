@@ -184,11 +184,7 @@ public class AiController {
     @Operation(summary = "유저 추천 질문", description = "GEMINI 유저 추천 질문을 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("recommend/user")
-    public BaseResponse<String> getUserRecommend(HttpServletRequest request,
-                                             @RequestBody AiAdviceRequest requestDTO) throws HttpException, IOException {
-        if(jwtUtil.getUserId(request) == null) {
-            return new BaseResponse<>(HttpStatus.UNAUTHORIZED.value(), "로그인이 필요합니다.", "로그인이 필요합니다.");
-        }
-        return new BaseResponse<>(HttpStatus.OK.value(), "유저 추천 질문을 가져오는데 성공하였습니다.", aiServiceImpl.getUserRecommend(requestDTO.getOcid()));
+    public BaseResponse<String> getUserRecommend() throws HttpException, IOException {
+        return new BaseResponse<>(HttpStatus.OK.value(), "유저 추천 질문을 가져오는데 성공하였습니다.", aiServiceImpl.getUserRecommend());
     }
 }

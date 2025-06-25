@@ -30,7 +30,7 @@ public interface AiService {
 
     String getCharacterRecommend(String ocid) throws HttpException, IOException;
 
-    String getUserRecommend(String ocid) throws HttpException, IOException;
+    String getUserRecommend() throws HttpException, IOException;
 
     List<AiHistoryResponse> getHistory(Long userId);
 

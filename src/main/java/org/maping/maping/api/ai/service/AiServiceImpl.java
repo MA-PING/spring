@@ -261,13 +261,13 @@ public class AiServiceImpl implements AiService{
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
         String basicString = nexonUtils.basicString(basic);
         String text = "기본정보 : {" + basicString + "}\n" +
-                "메이플 캐릭터의 기본 정보야 사용자가 AI 에게 물어볼만한 추천 질문 5개를 알려줘.";
+                "메이플 캐릭터의 기본 정보야 사용자가 AI 에게 물어볼만한 추천 질문 5개를 알려줘.\n {질문1}\n {질문2}\n {질문3}\n {질문4}\n {질문5} \n이런식으로 질문만 30자 이내로 대답해줘";
         return geminiUtils.getGeminiGoogleResponse(text);
     }
 
     @Override
-    public String getUserRecommend(String ocid) throws HttpException, IOException {
-        String text = "메이플 스토리 유저가 AI 에게 물어볼만한 추천 질문 5개를 알려줘.";
+    public String getUserRecommend() throws HttpException, IOException {
+        String text = "메이플 스토리 유저가 AI 에게 물어볼만한 추천 질문 5개를 알려줘.\n {질문1}\n {질문2}\n {질문3}\n {질문4}\n {질문5} \n이런식으로 질문만 30자 이내로 대답해줘";
         return geminiUtils.getGeminiGoogleResponse(text);
     }
 
