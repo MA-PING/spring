@@ -487,6 +487,7 @@ public class NEXONUtils {
         CompletableFuture<CharacterAbilityDTO> ability = CompletableFuture.supplyAsync(() -> getCharacterAbility(ocid));
         CompletableFuture<CharacterItemEquipmentDTO> itemEquipment = CompletableFuture.supplyAsync(() -> getCharacterItemEquip(ocid));
         CompletableFuture<CharacterSymbolEquipmentDTO> symbolEquipment = CompletableFuture.supplyAsync(() -> getCharacterSymbolEquipment(ocid));
+        CompletableFuture<CharacterAndroidEquipmentDTO> androidEquipment = CompletableFuture.supplyAsync(() -> getCharacterAndroid(ocid));
         CompletableFuture<CharacterSkillDTO> skill5 = CompletableFuture.supplyAsync(() -> getCharacterSkill5(ocid, 5));
         CompletableFuture<CharacterSkillDTO> skill6 = CompletableFuture.supplyAsync(() -> getCharacterSkill5(ocid, 6));
         CompletableFuture<CharacterLinkSkillDTO> linkSkill = CompletableFuture.supplyAsync(() -> getCharacterLinkSkill(ocid));
@@ -496,23 +497,6 @@ public class NEXONUtils {
         CompletableFuture<UnionDTO> union = CompletableFuture.supplyAsync(() -> getUnion(ocid));
         CompletableFuture<UnionRaiderDTO> unionRaider = CompletableFuture.supplyAsync(() -> getUnionRaider(ocid));
         CompletableFuture<UnionArtifactDTO> unionArtifact = CompletableFuture.supplyAsync(() -> getUnionArtifact(ocid));
-
-        characterInfo.setOcid(ocid);
-        characterInfo.setBasic(getCharacterBasic(ocid));
-        characterInfo.setStat(getCharacterStat(ocid));
-        characterInfo.setHyperStat(getCharacterHyperStat(ocid));
-        characterInfo.setAbility(getCharacterAbility(ocid));
-        characterInfo.setItemEquipment(getCharacterItemEquip(ocid));
-        characterInfo.setSymbolEquipment(getCharacterSymbolEquipment(ocid));
-        characterInfo.setSkill5(getCharacterSkill5(ocid, 5));
-        characterInfo.setSkill6(getCharacterSkill5(ocid, 6));
-        characterInfo.setLinkSkill(getCharacterLinkSkill(ocid));
-        characterInfo.setVMatrix(getCharacterVmatrix(ocid));
-        characterInfo.setHexaMatrix(getCharacterHexamatrix(ocid));
-        characterInfo.setHexaMatrixStat(getCharacterHexamatrixStat(ocid));
-        characterInfo.setUnion(getUnion(ocid));
-        characterInfo.setUnionRaider(getUnionRaider(ocid));
-        characterInfo.setUnionArtifact(getUnionArtifact(ocid));
 
         characterInfo.setBasic(basic.join());
         if(search){
@@ -543,6 +527,7 @@ public class NEXONUtils {
         characterInfo.setAbility(ability.join());
         characterInfo.setItemEquipment(itemEquipment.join());
         characterInfo.setSymbolEquipment(symbolEquipment.join());
+        characterInfo.setAndroidEquipment(androidEquipment.join());
         characterInfo.setSkill5(skill5.join());
         characterInfo.setSkill6(skill6.join());
         characterInfo.setLinkSkill(linkSkill.join());
