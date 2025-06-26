@@ -481,179 +481,40 @@ public class NEXONUtils {
         CharacterInfoDTO characterInfo = new CharacterInfoDTO();
         log.info("getCharacterInfo: {}", ocid);
         characterInfo.setOcid(ocid);
-        List<Callable<Void>> tasks = new ArrayList<>();
-        tasks.add(() -> {
-            CharacterBasicDTO basic = getCharacterBasic(ocid);
-            if(basic == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                basic = getCharacterBasic(ocid);
-            }
-            characterInfo.setBasic(basic);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterStatDto characterStat = getCharacterStat(ocid);
-            if (characterStat == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                characterStat = getCharacterStat(ocid);
-            }
-            characterInfo.setStat(characterStat);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterHyperStatDTO characterHyperStat = getCharacterHyperStat(ocid);
-            if (characterHyperStat == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                characterHyperStat = getCharacterHyperStat(ocid);
-            }
-            characterInfo.setHyperStat(characterHyperStat);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterAbilityDTO characterAbility = getCharacterAbility(ocid);
-            if (characterAbility == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                characterAbility = getCharacterAbility(ocid);
-            }
-            characterInfo.setAbility(characterAbility);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterItemEquipmentDTO itemEquipment = getCharacterItemEquip(ocid);
-            if (itemEquipment == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                itemEquipment = getCharacterItemEquip(ocid);
-            }
-            characterInfo.setItemEquipment(itemEquipment);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterSymbolEquipmentDTO symbolEquipment = getCharacterSymbolEquipment(ocid);
-            if (symbolEquipment == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                symbolEquipment = getCharacterSymbolEquipment(ocid);
-            }
-            characterInfo.setSymbolEquipment(symbolEquipment);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterAndroidEquipmentDTO androidEquipment = getCharacterAndroid(ocid);
-            if (androidEquipment == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                androidEquipment = getCharacterAndroid(ocid);
-            }
-            characterInfo.setAndroidEquipment(androidEquipment);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterSkillDTO skill5 = getCharacterSkill5(ocid, 5);
-            if (skill5 == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                skill5 = getCharacterSkill5(ocid, 5);
-            }
-            characterInfo.setSkill5(skill5);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterSkillDTO skill6 = getCharacterSkill5(ocid, 6);
-            if (skill6 == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                skill6 = getCharacterSkill5(ocid, 6);
-            }
-            characterInfo.setSkill6(skill6);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterLinkSkillDTO linkSkill = getCharacterLinkSkill(ocid);
-            if (linkSkill == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                linkSkill = getCharacterLinkSkill(ocid);
-            }
-            characterInfo.setLinkSkill(linkSkill);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterVMatrixDTO vMatrix = getCharacterVmatrix(ocid);
-            if (vMatrix == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                vMatrix = getCharacterVmatrix(ocid);
-            }
-            characterInfo.setVMatrix(vMatrix);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterHexaMatrixDTO hexaMatrix = getCharacterHexamatrix(ocid);
-            if (hexaMatrix == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                hexaMatrix = getCharacterHexamatrix(ocid);
-            }
-            characterInfo.setHexaMatrix(hexaMatrix);
-            return null;
-        });
-        tasks.add(() -> {
-            CharacterHexaMatrixStatDTO hexaMatrixStat = getCharacterHexamatrixStat(ocid);
-            if (hexaMatrixStat == null) {
-                TimeUnit.MILLISECONDS.sleep(500); // 짧은 지연 후 재시도
-                hexaMatrixStat = getCharacterHexamatrixStat(ocid);
-            }
-            characterInfo.setHexaMatrixStat(hexaMatrixStat);
-            return null;
-        });
-        tasks.add(() -> {
-            UnionDTO union = getUnion(ocid);
-            if (union == null) {
-                TimeUnit.MILLISECONDS.sleep(500);
-                union = getUnion(ocid);
-            }
-            characterInfo.setUnion(union);
-            return null;
-        });
-        tasks.add(() -> {
-            UnionRaiderDTO unionRaider = getUnionRaider(ocid);
-            if (unionRaider == null) {
-                TimeUnit.MILLISECONDS.sleep(500);
-                unionRaider = getUnionRaider(ocid);
-            }
-            characterInfo.setUnionRaider(unionRaider);
-            return null;
-        });
-        tasks.add(() -> {
-            UnionArtifactDTO unionArtifact = getUnionArtifact(ocid);
-            if (unionArtifact == null) {
-                TimeUnit.MILLISECONDS.sleep(500);
-                unionArtifact = getUnionArtifact(ocid);
-            }
-            characterInfo.setUnionArtifact(unionArtifact);
-            return null;
-        });
+        CompletableFuture<CharacterBasicDTO> basic = CompletableFuture.supplyAsync(() -> getCharacterBasic(ocid));
+        CompletableFuture<CharacterStatDto> stat = CompletableFuture.supplyAsync(() -> getCharacterStat(ocid));
+        CompletableFuture<CharacterHyperStatDTO> hyperStat = CompletableFuture.supplyAsync(() -> getCharacterHyperStat(ocid));
+        CompletableFuture<CharacterAbilityDTO> ability = CompletableFuture.supplyAsync(() -> getCharacterAbility(ocid));
+        CompletableFuture<CharacterItemEquipmentDTO> itemEquipment = CompletableFuture.supplyAsync(() -> getCharacterItemEquip(ocid));
+        CompletableFuture<CharacterSymbolEquipmentDTO> symbolEquipment = CompletableFuture.supplyAsync(() -> getCharacterSymbolEquipment(ocid));
+        CompletableFuture<CharacterSkillDTO> skill5 = CompletableFuture.supplyAsync(() -> getCharacterSkill5(ocid, 5));
+        CompletableFuture<CharacterSkillDTO> skill6 = CompletableFuture.supplyAsync(() -> getCharacterSkill5(ocid, 6));
+        CompletableFuture<CharacterLinkSkillDTO> linkSkill = CompletableFuture.supplyAsync(() -> getCharacterLinkSkill(ocid));
+        CompletableFuture<CharacterVMatrixDTO> vMatrix = CompletableFuture.supplyAsync(() -> getCharacterVmatrix(ocid));
+        CompletableFuture<CharacterHexaMatrixDTO> hexaMatrix = CompletableFuture.supplyAsync(() -> getCharacterHexamatrix(ocid));
+        CompletableFuture<CharacterHexaMatrixStatDTO> hexaMatrixStat = CompletableFuture.supplyAsync(() -> getCharacterHexamatrixStat(ocid));
+        CompletableFuture<UnionDTO> union = CompletableFuture.supplyAsync(() -> getUnion(ocid));
+        CompletableFuture<UnionRaiderDTO> unionRaider = CompletableFuture.supplyAsync(() -> getUnionRaider(ocid));
+        CompletableFuture<UnionArtifactDTO> unionArtifact = CompletableFuture.supplyAsync(() -> getUnionArtifact(ocid));
 
-        // ScheduledExecutorService를 사용하여 호출 실행
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        characterInfo.setOcid(ocid);
+        characterInfo.setBasic(getCharacterBasic(ocid));
+        characterInfo.setStat(getCharacterStat(ocid));
+        characterInfo.setHyperStat(getCharacterHyperStat(ocid));
+        characterInfo.setAbility(getCharacterAbility(ocid));
+        characterInfo.setItemEquipment(getCharacterItemEquip(ocid));
+        characterInfo.setSymbolEquipment(getCharacterSymbolEquipment(ocid));
+        characterInfo.setSkill5(getCharacterSkill5(ocid, 5));
+        characterInfo.setSkill6(getCharacterSkill5(ocid, 6));
+        characterInfo.setLinkSkill(getCharacterLinkSkill(ocid));
+        characterInfo.setVMatrix(getCharacterVmatrix(ocid));
+        characterInfo.setHexaMatrix(getCharacterHexamatrix(ocid));
+        characterInfo.setHexaMatrixStat(getCharacterHexamatrixStat(ocid));
+        characterInfo.setUnion(getUnion(ocid));
+        characterInfo.setUnionRaider(getUnionRaider(ocid));
+        characterInfo.setUnionArtifact(getUnionArtifact(ocid));
 
-        for (int i = 0; i < tasks.size(); i += 5) { // 4 -> 5로 변경
-            int start = i;
-            int end = Math.min(i + 5, tasks.size()); // 4 -> 5로 변경
-
-            final int groupNumber = i / 5; // 현재 그룹 번호 계산
-            scheduler.schedule(() -> {
-                log.info("Executing task group {} (tasks {} to {})", groupNumber, start, end - 1);
-                for (int j = start; j < end; j++) {
-                    try {
-                        // 각 태스크 내부에서 null 체크 및 재시도 로직이 이미 포함되어 있음
-                        tasks.get(j).call();
-                    } catch (Exception e) {
-                        log.error("Error executing task {} in group {}: {}", j, groupNumber, e.getMessage());
-                    }
-                }
-            }, groupNumber, TimeUnit.SECONDS); // 1초 간격 유지
-        }
-
-        scheduler.shutdown();
-        try {
-            scheduler.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        characterInfo.setBasic(basic.join());
         if(search){
             new Thread(() -> {
                 try {
@@ -672,6 +533,26 @@ public class NEXONUtils {
                 }
             }).start();
         }
+
+        if (stat == null){
+
+        }
+
+        characterInfo.setStat(stat.join());
+        characterInfo.setHyperStat(hyperStat.join());
+        characterInfo.setAbility(ability.join());
+        characterInfo.setItemEquipment(itemEquipment.join());
+        characterInfo.setSymbolEquipment(symbolEquipment.join());
+        characterInfo.setSkill5(skill5.join());
+        characterInfo.setSkill6(skill6.join());
+        characterInfo.setLinkSkill(linkSkill.join());
+        characterInfo.setVMatrix(vMatrix.join());
+        characterInfo.setHexaMatrix(hexaMatrix.join());
+        characterInfo.setHexaMatrixStat(hexaMatrixStat.join());
+        characterInfo.setUnion(union.join());
+        characterInfo.setUnionRaider(unionRaider.join());
+        characterInfo.setUnionArtifact(unionArtifact.join());
+
 
         if(characterInfo.getBasic() == null) {
             throw new CustomException(ErrorCode.NotFound, "캐릭터 정보를 찾을 수 없습니다.");
