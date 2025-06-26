@@ -24,7 +24,7 @@ public class CharacterList {
     @JsonProperty("character_name")
     private String characterName;
 
-    @JsonProperty("character_iamge")
+    @JsonProperty("character_image")
     private String characterImage;
 
     /**
