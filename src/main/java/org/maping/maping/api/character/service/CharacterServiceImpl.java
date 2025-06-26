@@ -3,6 +3,7 @@ package org.maping.maping.api.character.service;
 import lombok.extern.slf4j.Slf4j;
 import org.maping.maping.api.character.dto.request.OcidRequest;
 import org.maping.maping.api.character.dto.response.AutocompleteResponse;
+import org.maping.maping.api.character.dto.response.CharacterList;
 import org.maping.maping.api.character.dto.response.CharacterListResponse;
 import org.maping.maping.api.character.dto.response.CharacterResponse;
 import org.maping.maping.common.enums.expection.ErrorCode;
@@ -17,7 +18,9 @@ import org.maping.maping.repository.user.UserApiRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -32,7 +35,7 @@ public class CharacterServiceImpl implements CharacterService {
     private CharacterConverter characterConverter;
 
 
-    public CharacterServiceImpl(NEXONUtils nexonUtils, org.maping.maping.repository.user.UserApiRepository userApiRepository, CharacterSearchRepository characterSearchRepository) {
+    public CharacterServiceImpl(NEXONUtils nexonUtils, UserApiRepository userApiRepository, CharacterSearchRepository characterSearchRepository) {
         this.nexonUtils = nexonUtils;
         UserApiRepository = userApiRepository;
         CharacterSearchRepository = characterSearchRepository;
@@ -91,20 +94,65 @@ public class CharacterServiceImpl implements CharacterService {
             }
         }
         CharacterInfoDTO characterInfoDTO = nexonUtils.getCharacterInfo(ocid, false);
+
         CharacterListResponse characterListResponse = new CharacterListResponse();
-        characterListResponse.setCharacterList(characterListDto);
+        characterListResponse.setCharacterList(convertCharacterList(characterListDto.getAccountList().getFirst().getCharacterList(), ocid));
         characterListResponse.setCharacterInfo(characterInfoDTO);
         return characterListResponse;
+    }
+    public List<CharacterList> convertCharacterList(List<CharacterListAccountCharacterDTO> characterList, String ocid) {
+        return characterList.stream()
+                .map(character -> {
+                    // 캐릭터 기본 정보를 가져옵니다. 에러 발생 시 빈 DTO를 반환합니다.
+                    CharacterBasicDTO characterBasicDTO = nexonUtils.getCharacterBasic(character.getOcid());
+
+                    // characterBasicDTO가 유효한 정보인지 확인합니다.
+                    // 비어있는 DTO는 getCharacterImage()가 null이거나 비어있을 가능성이 높습니다.
+                    // 만약 CharacterBasicDTO에 '유효한지'를 판단할 다른 필드가 있다면 그것을 활용하세요.
+                    if (characterBasicDTO == null || characterBasicDTO.getCharacterImage() == null || characterBasicDTO.getCharacterImage().isEmpty()) {
+                        log.warn("기본 정보가 비어있거나 유효하지 않아 캐릭터를 건너뜁니다 (OCID: {}, 이름: {}).",
+                                character.getOcid(), character.getCharacterName());
+                        return null; // 유효하지 않은 경우 null 반환
+                    }
+
+                    // 유효한 정보인 경우에만 CharacterList 객체 생성 및 정보 설정
+                    CharacterList characterResponse = new CharacterList();
+                    characterResponse.setOcid(character.getOcid());
+                    characterResponse.setCharacterName(character.getCharacterName());
+                    characterResponse.setWorldName(character.getWorldName());
+                    characterResponse.setCharacterClass(character.getCharacterClass());
+                    characterResponse.setCharacterLevel(character.getCharacterLevel());
+                    characterResponse.setCharacterImage(characterBasicDTO.getCharacterImage());
+                    characterResponse.setMainCharacter(character.getOcid().equals(ocid));
+                    return characterResponse;
+                })
+                .filter(Objects::nonNull) // map 단계에서 null이 된 요소를 제거합니다.
+                .collect(Collectors.toList()); // 최종 목록으로 수집
     }
 
     @Override
     public CharacterListResponse getCharacterList(Long userId) {
+        String ocid = "";
         Optional<UserApiJpaEntity> userApiJpaEntity = UserApiRepository.findById(userId);
         UserApiJpaEntity user = userApiJpaEntity.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 유저입니다."));
         CharacterListDto characterListDto = nexonUtils.getCharacterList(user.getUserApiInfo());
-        CharacterInfoDTO characterInfoDTO = nexonUtils.getCharacterInfo(characterListDto.getAccountList().getFirst().getCharacterList().getFirst().getOcid(), false);
+
+        UnionRankingList ranking = nexonUtils.getUnionRanking(characterListDto.getAccountList().getFirst().getCharacterList().getFirst().getOcid());
+        if (ranking == null || ranking.getRanking() == null || ranking.getRanking().isEmpty()) {
+            ocid = getMainCharacter(characterListDto.getAccountList().getFirst().getCharacterList());
+
+        }else{
+            String name = ranking.getRanking().getFirst().getCharacterName();
+            for (CharacterListAccountCharacterDTO c : characterListDto.getAccountList().getFirst().getCharacterList()) {
+                if (c.getCharacterName().equals(name)) {
+                    ocid = c.getOcid();
+                    break;
+                }
+            }
+        }
+        CharacterInfoDTO characterInfoDTO = nexonUtils.getCharacterInfo(ocid, false);
         CharacterListResponse characterListResponse = new CharacterListResponse();
-        characterListResponse.setCharacterList(characterListDto);
+        characterListResponse.setCharacterList(convertCharacterList(characterListDto.getAccountList().getFirst().getCharacterList(), ocid));
         characterListResponse.setCharacterInfo(characterInfoDTO);
         return characterListResponse;
     }

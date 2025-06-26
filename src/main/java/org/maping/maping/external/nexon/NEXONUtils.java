@@ -82,13 +82,28 @@ public class NEXONUtils {
                 .defaultHeader("x-nxopen-api-key", Key)
                 .build();
 
-        return restClient.get()
-                .uri(uriBuilder -> uriBuilder.queryParam("ocid", ocid).build())
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                    throw new CustomException(ErrorCode.Forbidden, (response.getStatusCode() + response.getHeaders().toString()));
-                })
-                .body(CharacterBasicDTO.class);
+        try {
+            return restClient.get()
+                    .uri(uriBuilder -> uriBuilder.queryParam("ocid", ocid).build())
+                    .retrieve()
+                    // 4xx 클라이언트 에러 발생 시 CustomException을 던지는 대신,
+                    // 경고 로그를 남기고 빈 CharacterBasicDTO를 반환하도록 수정합니다.
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                        log.warn("Nexon API returned 4xx client error for ocid {}: Status {} - Headers {}",
+                                ocid, response.getStatusCode(), response.getHeaders());
+                    })
+                    // 5xx 서버 에러도 유사하게 처리하려면 추가할 수 있습니다.
+                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+                        log.error("Nexon API returned 5xx server error for ocid {}: Status {} - Headers {}",
+                                ocid, response.getStatusCode(), response.getHeaders());
+                    })
+                    .body(CharacterBasicDTO.class);
+        } catch (Exception e) {
+            // 네트워크 오류, JSON 파싱 오류 등 기타 모든 예외를 잡습니다.
+            log.error("Error fetching character basic info for ocid {}: {}", ocid, e.getMessage());
+            // 에러 발생 시 비어있는 CharacterBasicDTO 객체를 반환합니다.
+            return new CharacterBasicDTO();
+        }
     }
 
     // API 키를 통해 캐릭터 리스트를 가져오는 API
