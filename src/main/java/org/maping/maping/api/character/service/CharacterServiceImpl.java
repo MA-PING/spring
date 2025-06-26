@@ -8,10 +8,9 @@ import org.maping.maping.api.character.dto.response.CharacterResponse;
 import org.maping.maping.common.enums.expection.ErrorCode;
 import org.maping.maping.exceptions.CustomException;
 import org.maping.maping.external.nexon.NEXONUtils;
-import org.maping.maping.external.nexon.dto.character.CharacterBasicDTO;
-import org.maping.maping.external.nexon.dto.character.CharacterDTO;
-import org.maping.maping.external.nexon.dto.character.CharacterInfoDTO;
-import org.maping.maping.external.nexon.dto.character.CharacterListDto;
+import org.maping.maping.external.nexon.dto.character.*;
+import org.maping.maping.external.nexon.dto.union.UnionRankingDTO;
+import org.maping.maping.external.nexon.dto.union.UnionRankingList;
 import org.maping.maping.model.user.UserApiJpaEntity;
 import org.maping.maping.repository.search.CharacterSearchRepository;
 import org.maping.maping.repository.user.UserApiRepository;
@@ -61,12 +60,37 @@ public class CharacterServiceImpl implements CharacterService {
         log.info(jaso);
         return CharacterSearchRepository.findByJaso(jaso).stream().map(characterConverter::convert).collect(Collectors.toList());
     }
-
+    public String getMainCharacter(List<CharacterListAccountCharacterDTO> characterList) {
+        CharacterListAccountCharacterDTO main = characterList.getFirst();
+        for (CharacterListAccountCharacterDTO character : characterList) {
+            if (main.getCharacterLevel() < character.getCharacterLevel()) {
+                main = character;
+            }
+        }
+        return main.getOcid();
+    }
     @Override
     public CharacterListResponse getApiCharacterList(OcidRequest apiKey) {
         log.info(apiKey.getApiKey());
+        String ocid = null;
         CharacterListDto characterListDto = nexonUtils.getCharacterList(apiKey.getApiKey());
-        CharacterInfoDTO characterInfoDTO = nexonUtils.getCharacterInfo(characterListDto.getAccountList().getFirst().getCharacterList().getFirst().getOcid(), false);
+        if (characterListDto.getAccountList() == null || characterListDto.getAccountList().isEmpty()) {
+            throw new CustomException(ErrorCode.BadRequest, "유효하지 않은 API 키입니다.");
+        }
+        UnionRankingList ranking = nexonUtils.getUnionRanking(characterListDto.getAccountList().getFirst().getCharacterList().getFirst().getOcid());
+        if (ranking == null || ranking.getRanking() == null || ranking.getRanking().isEmpty()) {
+            ocid = getMainCharacter(characterListDto.getAccountList().getFirst().getCharacterList());
+
+        }else{
+            String name = ranking.getRanking().getFirst().getCharacterName();
+            for (CharacterListAccountCharacterDTO c : characterListDto.getAccountList().getFirst().getCharacterList()) {
+                if (c.getCharacterName().equals(name)) {
+                    ocid = c.getOcid();
+                    break;
+                }
+            }
+        }
+        CharacterInfoDTO characterInfoDTO = nexonUtils.getCharacterInfo(ocid, false);
         CharacterListResponse characterListResponse = new CharacterListResponse();
         characterListResponse.setCharacterList(characterListDto);
         characterListResponse.setCharacterInfo(characterInfoDTO);

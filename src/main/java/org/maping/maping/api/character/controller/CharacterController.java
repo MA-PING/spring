@@ -47,7 +47,7 @@ public class CharacterController {
 
     @Operation(summary = "api 용 캐릭터 리스트", description = "Api 로 캐릭터 리스트를 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("character/apiList")
+    @PostMapping("character/apiList")
     public BaseResponse<CharacterListResponse> getApiCharacterList(@RequestBody OcidRequest apiKey) {
         return new BaseResponse<>(HttpStatus.OK.value(), "캐릭터 리스트를 가져오는데 성공하였습니다.", characterServiceImpl.getApiCharacterList(apiKey));
     }
