@@ -121,6 +121,7 @@ public class CharacterServiceImpl implements CharacterService {
                     characterResponse.setCharacterClass(character.getCharacterClass());
                     characterResponse.setCharacterLevel(character.getCharacterLevel());
                     characterResponse.setCharacterImage(characterBasicDTO.getCharacterImage());
+                    characterResponse.setGuildName(characterBasicDTO.getCharacterGuildName());
                     characterResponse.setMainCharacter(false);
                     return characterResponse;
                 })
@@ -139,6 +140,7 @@ public class CharacterServiceImpl implements CharacterService {
                     characterResponse.setCharacterClass(character.getCharacterClass());
                     characterResponse.setCharacterLevel(character.getCharacterLevel());
                     characterResponse.setCharacterImage(character.getCharacterImage());
+                    characterResponse.setGuildName(character.getGuildName());
                     characterResponse.setMainCharacter(character.getOcid().equals(mainOcid)); // 메인 캐릭터 여부 설정
                     return characterResponse;
                 })

@@ -45,6 +45,9 @@ public class CharacterList {
     @JsonProperty("character_level")
     private int characterLevel;
 
+    @JsonProperty("character_guild_name")
+    private String guildName;
+
     @JsonProperty("main_character")
     private boolean mainCharacter;
 }
