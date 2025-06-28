@@ -190,21 +190,36 @@ public class CharacterServiceImpl implements CharacterService {
     }
 
     @Override
-    public CharacterResponse getApiCheck(String apiKey) {
+    public CharacterList getApiCheck(String apiKey) {
+        String ocid = null;
         if(apiKey == null || apiKey.trim().isEmpty()) {
             throw new CustomException(ErrorCode.Forbidden, "API 키를 입력해주세요.");
         }
         CharacterListDto characterListDto = nexonUtils.getCharacterList(apiKey);
-        CharacterBasicDTO characterBasicDTO = nexonUtils.getCharacterBasic(characterListDto.getAccountList().getFirst().getCharacterList().getFirst().getOcid());
+        List<CharacterList> characterList = convertCharacterList(characterListDto.getAccountList().getFirst().getCharacterList());
+        UnionRankingList ranking = nexonUtils.getUnionRanking(characterList.getFirst().getOcid());
+        if (ranking == null || ranking.getRanking() == null || ranking.getRanking().isEmpty()) {
+            ocid = getMainCharacter(characterListDto.getAccountList().getFirst().getCharacterList());
 
-        return CharacterResponse.builder()
-                .characterName(characterBasicDTO.getCharacterName())
-                .worldName(characterBasicDTO.getWorldName())
-                .world(characterBasicDTO.getWorldName())
-                .characterClass(characterBasicDTO.getCharacterClass())
-                .characterLevel(characterBasicDTO.getCharacterLevel())
-                .characterGuildName(characterBasicDTO.getCharacterGuildName())
-                .characterImage(characterBasicDTO.getCharacterImage())
+        }else{
+            String name = ranking.getRanking().getFirst().getCharacterName();
+            for (CharacterList c : characterList) {
+                if (c.getCharacterName().equals(name)) {
+                    ocid = c.getOcid();
+                    break;
+                }
+            }
+        }
+        CharacterBasicDTO characterInfoDTO = nexonUtils.getCharacterBasic(ocid);
+        return CharacterList.builder()
+                .characterName(characterInfoDTO.getCharacterName())
+                .worldName(characterInfoDTO.getWorldName())
+                .worldName(characterInfoDTO.getWorldName())
+                .characterClass(characterInfoDTO.getCharacterClass())
+                .characterLevel((int) characterInfoDTO.getCharacterLevel())
+                .guildName(characterInfoDTO.getCharacterGuildName())
+                .characterImage(characterInfoDTO.getCharacterImage())
+                .mainCharacter(true)
                 .build();
     }
 }

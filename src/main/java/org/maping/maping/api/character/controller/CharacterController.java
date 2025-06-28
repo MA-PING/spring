@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.maping.maping.api.character.dto.request.ApiKeyCheckRequest;
 import org.maping.maping.api.character.dto.request.OcidRequest;
 import org.maping.maping.api.character.dto.response.AutocompleteResponse;
+import org.maping.maping.api.character.dto.response.CharacterList;
 import org.maping.maping.api.character.dto.response.CharacterListResponse;
 import org.maping.maping.api.character.dto.response.CharacterResponse;
 import org.maping.maping.api.character.service.CharacterServiceImpl;
@@ -70,9 +71,9 @@ public class CharacterController {
 
     @Operation(summary = "api 테스트", description = "api 키를 검증하는 API")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("character/check")
-    public BaseResponse<CharacterResponse> getApiCheck(@RequestBody ApiKeyCheckRequest apiKey) {
-        return new BaseResponse<>(HttpStatus.OK.value(), "api 키를 검증하는 API", characterServiceImpl.getApiCheck(apiKey.getApiKey()));
+    @PostMapping("character/check")
+    public BaseResponse<CharacterList> getApiCheck(@RequestBody ApiKeyCheckRequest apiKey) {
+        return new BaseResponse<>(HttpStatus.OK.value(), "api 키를 검증을 성공하였습니다.", characterServiceImpl.getApiCheck(apiKey.getApiKey()));
     }
 
 

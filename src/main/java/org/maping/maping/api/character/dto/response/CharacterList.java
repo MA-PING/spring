@@ -1,9 +1,6 @@
 package org.maping.maping.api.character.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
@@ -11,6 +8,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @ToString
+@Builder
 public class CharacterList {
     /**
      * 캐릭터 식별자
@@ -50,4 +48,5 @@ public class CharacterList {
 
     @JsonProperty("main_character")
     private boolean mainCharacter;
+
 }
