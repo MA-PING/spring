@@ -77,6 +77,9 @@ public class CharacterServiceImpl implements CharacterService {
         log.info(apiKey.getApiKey());
         String ocid = null;
         CharacterListDto characterListDto = nexonUtils.getCharacterList(apiKey.getApiKey());
+        if(characterListDto == null || characterListDto.getAccountList() == null || characterListDto.getAccountList().isEmpty()) {
+            return null;
+        }
         if (characterListDto.getAccountList() == null || characterListDto.getAccountList().isEmpty()) {
             throw new CustomException(ErrorCode.BadRequest, "유효하지 않은 API 키입니다.");
         }
@@ -152,7 +155,9 @@ public class CharacterServiceImpl implements CharacterService {
         Optional<UserApiJpaEntity> userApiJpaEntity = UserApiRepository.findById(userId);
         UserApiJpaEntity user = userApiJpaEntity.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 유저입니다."));
         CharacterListDto characterListDto = nexonUtils.getCharacterList(user.getUserApiInfo());
-
+        if(characterListDto == null || characterListDto.getAccountList() == null || characterListDto.getAccountList().isEmpty()) {
+            return null;
+        }
         List<CharacterList> characterList = convertCharacterList(characterListDto.getAccountList().getFirst().getCharacterList());
         UnionRankingList ranking = nexonUtils.getUnionRanking(characterList.getFirst().getOcid());
         if (ranking == null || ranking.getRanking() == null || ranking.getRanking().isEmpty()) {
@@ -190,12 +195,16 @@ public class CharacterServiceImpl implements CharacterService {
     }
 
     @Override
-    public CharacterList getApiCheck(String apiKey) {
+    public List<CharacterList> getApiCheck(String apiKey) {
         String ocid = null;
         if(apiKey == null || apiKey.trim().isEmpty()) {
             throw new CustomException(ErrorCode.Forbidden, "API 키를 입력해주세요.");
         }
+
         CharacterListDto characterListDto = nexonUtils.getCharacterList(apiKey);
+        if(characterListDto == null || characterListDto.getAccountList() == null || characterListDto.getAccountList().isEmpty()) {
+            return null;
+        }
         List<CharacterList> characterList = convertCharacterList(characterListDto.getAccountList().getFirst().getCharacterList());
         UnionRankingList ranking = nexonUtils.getUnionRanking(characterList.getFirst().getOcid());
         if (ranking == null || ranking.getRanking() == null || ranking.getRanking().isEmpty()) {
@@ -210,16 +219,6 @@ public class CharacterServiceImpl implements CharacterService {
                 }
             }
         }
-        CharacterBasicDTO characterInfoDTO = nexonUtils.getCharacterBasic(ocid);
-        return CharacterList.builder()
-                .characterName(characterInfoDTO.getCharacterName())
-                .worldName(characterInfoDTO.getWorldName())
-                .worldName(characterInfoDTO.getWorldName())
-                .characterClass(characterInfoDTO.getCharacterClass())
-                .characterLevel((int) characterInfoDTO.getCharacterLevel())
-                .guildName(characterInfoDTO.getCharacterGuildName())
-                .characterImage(characterInfoDTO.getCharacterImage())
-                .mainCharacter(true)
-                .build();
+        return convertCharacterList(characterList, ocid);
     }
 }

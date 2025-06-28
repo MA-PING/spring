@@ -72,7 +72,7 @@ public class CharacterController {
     @Operation(summary = "api 테스트", description = "api 키를 검증하는 API")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("character/check")
-    public BaseResponse<CharacterList> getApiCheck(@RequestBody ApiKeyCheckRequest apiKey) {
+    public BaseResponse<List<CharacterList>> getApiCheck(@RequestBody ApiKeyCheckRequest apiKey) {
         return new BaseResponse<>(HttpStatus.OK.value(), "api 키를 검증을 성공하였습니다.", characterServiceImpl.getApiCheck(apiKey.getApiKey()));
     }
 
