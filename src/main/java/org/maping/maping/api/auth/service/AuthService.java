@@ -15,4 +15,6 @@ public interface  AuthService {
 
     JwtDto login(String email, String password);
 
+    JwtDto reissue(String refreshToken);
+
 }

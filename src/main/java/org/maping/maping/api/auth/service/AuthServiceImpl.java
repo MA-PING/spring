@@ -109,4 +109,17 @@ public class AuthServiceImpl implements AuthService {
         // JWT 생성 후 반환 (유저 ID를 String으로 변환)
         return jwtUtil.generateJwtDto(String.valueOf(userInfo.getUserId()), userInfo.getUserName());
     }
+
+    @Override
+    public JwtDto reissue(String refreshToken) {
+        if (jwtUtil.isValidRefreshToken(refreshToken)) {
+            String userId = jwtUtil.getClaims(refreshToken).getSubject();
+
+
+            // 기본 role을 직접 지정 (ex. "USER")
+            return jwtUtil.generateJwtDto(userId, "USER");
+        } else {
+            throw new CustomException(ErrorCode.BadRequest, "올바른 Refresh 토큰이 아닙니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
 }
