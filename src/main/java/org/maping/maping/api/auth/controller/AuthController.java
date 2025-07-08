@@ -1,10 +1,10 @@
 package org.maping.maping.api.auth.controller;
 
 import groovy.util.logging.Slf4j;
-import io.netty.handler.codec.http.cookie.Cookie;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.maping.maping.api.auth.dto.request.*;
@@ -21,6 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import jakarta.mail.MessagingException;
 import org.maping.maping.common.response.BaseResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +49,22 @@ public class AuthController {
 
     @Operation(summary = "로그인", description = "사용자가 로그인하여 JWT를 발급받는 API")
     @PostMapping("/login")
-    public BaseResponse<JwtDto> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public BaseResponse<JwtDto> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         JwtDto jwtDto = authService.login(loginRequest.getEmail(), loginRequest.getPassword());
+
+
+        String accessToken = jwtDto.getAccessToken();
+
+
+        Cookie accessTokenCookie = new Cookie("accessToken", accessToken); // 쿠키 이름은 'accessToken', 값은 발급받은 JWT
+
+
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setPath("/");
+
+        response.addCookie(accessTokenCookie);
+
         return new BaseResponse<>(HttpStatus.OK.value(), "로그인 성공", jwtDto, true);
     }
 
