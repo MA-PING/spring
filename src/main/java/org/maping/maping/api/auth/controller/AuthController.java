@@ -1,6 +1,7 @@
 package org.maping.maping.api.auth.controller;
 
 import groovy.util.logging.Slf4j;
+import io.netty.handler.codec.http.cookie.Cookie;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
