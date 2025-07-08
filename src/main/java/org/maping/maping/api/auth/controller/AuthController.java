@@ -54,6 +54,8 @@ public class AuthController {
 
 
         String accessToken = jwtDto.getAccessToken();
+        String refreshToken = jwtDto.getRefreshToken();
+
 
 
         Cookie accessTokenCookie = new Cookie("accessToken", accessToken); // 쿠키 이름은 'accessToken', 값은 발급받은 JWT
@@ -63,7 +65,15 @@ public class AuthController {
         accessTokenCookie.setSecure(true);
         accessTokenCookie.setPath("/");
 
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
+
         response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
 
         return new BaseResponse<>(HttpStatus.OK.value(), "로그인 성공", jwtDto, true);
     }
