@@ -83,6 +83,8 @@ public class AuthController {
     @PatchMapping("/reissue")
     public BaseResponse<JwtDto> reissue(@RequestBody ReissueRequest request) {
         JwtDto newTokens = authService.reissue(request.getRefreshToken());
+
+
         return new BaseResponse<>(HttpStatus.OK.value(), "재발급 성공", newTokens, true);
     }
 
