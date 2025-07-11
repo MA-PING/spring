@@ -103,8 +103,17 @@ public class AuthController {
         String accessToken = loginResponse.getJwtDto().getAccessToken();
         boolean isNew = loginResponse.isNewMember();
 
-        // 프론트엔드로 토큰과 신규가입여부를 쿼리로 전달
-        String frontendRedirect = "https://api.ma-ping.com/social-callback?token=" + accessToken + "&isNew=" + isNew;
+        // HttpOnly 쿠키로 accessToken 저장
+        Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true); // HTTPS 환경에서만 전송
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 60 * 24); // 1일
+
+        response.addCookie(accessTokenCookie);
+
+        // 프론트엔드로는 신규가입여부만 쿼리로 전달
+        String frontendRedirect = "https://api.ma-ping.com/social-callback?isNew=" + isNew;
         response.sendRedirect(frontendRedirect);
     }
 
@@ -122,10 +131,20 @@ public class AuthController {
         String accessToken = loginResponse.getJwtDto().getAccessToken();
         boolean isNew = loginResponse.isNewMember();
 
-        // 프론트엔드로 토큰과 신규가입여부를 쿼리로 전달
-        String frontendRedirect = "https://api.ma-ping.com/social-callback?token=" + accessToken + "&isNew=" + isNew;
+        // HttpOnly 쿠키로 accessToken 저장
+        Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true); // HTTPS 환경에서만 전송
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 60 * 24); // 1일
+
+        response.addCookie(accessTokenCookie);
+
+        // 프론트엔드로는 신규가입여부만 쿼리로 전달
+        String frontendRedirect = "https://api.ma-ping.com/social-callback?isNew=" + isNew;
         response.sendRedirect(frontendRedirect);
     }
+
 
 
     @Operation(summary = "이메일 인증번호 발송", description = "이메일 인증번호를 발송하는 API")
