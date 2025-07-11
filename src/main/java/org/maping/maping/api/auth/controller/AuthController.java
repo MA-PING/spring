@@ -91,7 +91,7 @@ public class AuthController {
 
     @Operation(summary = "네이버 로그인", description = "네이버 로그인 API")
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("/signup/naver")
+    @GetMapping("/signup/naver")
     public BaseResponse<OAuthLoginResponse> naverLogin(
             @Parameter(description = "네이버 요청을 통해 받아온 엑세스 토큰")
             @RequestParam("code") String code,
@@ -104,7 +104,7 @@ public class AuthController {
 
     @Operation(summary = "구글 로그인", description = "구글 로그인 API")
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("/signup/google")
+    @GetMapping("/signup/google")
     public BaseResponse<OAuthLoginResponse> googleLogin(
             @Parameter(description = "구글 요청을 통해 받아온 엑세스 토큰")
             @RequestParam("code") String code
