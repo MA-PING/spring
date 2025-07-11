@@ -26,6 +26,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 @Slf4j
@@ -89,28 +91,40 @@ public class AuthController {
     }
 
 
-    @Operation(summary = "네이버 로그인", description = "네이버 로그인 API")
-    @ResponseStatus(HttpStatus.OK)
     @GetMapping("/signup/naver")
-    public BaseResponse<OAuthLoginResponse> naverLogin(
-            @Parameter(description = "네이버 요청을 통해 받아온 엑세스 토큰")
+    public void naverLogin(
             @RequestParam("code") String code,
-            @Parameter(description = "네이버 요청 시 생성된 상태값")
-            @RequestParam("state") String state
-    ) {
-        OAuthLoginResponse response = oAuthService.naverLogin(code, state);
-        return new BaseResponse<>(HttpStatus.OK.value(), "네이버 로그인 성공", response, true);
+            @RequestParam("state") String state,
+            HttpServletResponse response
+    ) throws IOException {
+        OAuthLoginResponse loginResponse = oAuthService.naverLogin(code, state);
+
+        // accessToken 추출
+        String accessToken = loginResponse.getJwtDto().getAccessToken();
+        boolean isNew = loginResponse.isNewMember();
+
+        // 프론트엔드로 토큰과 신규가입여부를 쿼리로 전달
+        String frontendRedirect = "https://api.ma-ping.com/social-callback?token=" + accessToken + "&isNew=" + isNew;
+        response.sendRedirect(frontendRedirect);
     }
 
+
     @Operation(summary = "구글 로그인", description = "구글 로그인 API")
-    @ResponseStatus(HttpStatus.OK)
     @GetMapping("/signup/google")
-    public BaseResponse<OAuthLoginResponse> googleLogin(
+    public void googleLogin(
             @Parameter(description = "구글 요청을 통해 받아온 엑세스 토큰")
-            @RequestParam("code") String code
-    ) {
-        OAuthLoginResponse response = oAuthService.googleLogin(code);
-        return new BaseResponse<>(HttpStatus.OK.value(), "구글 로그인 성공", response, true);
+            @RequestParam("code") String code,
+            HttpServletResponse response
+    ) throws IOException {
+        OAuthLoginResponse loginResponse = oAuthService.googleLogin(code);
+
+        // accessToken 추출
+        String accessToken = loginResponse.getJwtDto().getAccessToken();
+        boolean isNew = loginResponse.isNewMember();
+
+        // 프론트엔드로 토큰과 신규가입여부를 쿼리로 전달
+        String frontendRedirect = "https://api.ma-ping.com/social-callback?token=" + accessToken + "&isNew=" + isNew;
+        response.sendRedirect(frontendRedirect);
     }
 
 
