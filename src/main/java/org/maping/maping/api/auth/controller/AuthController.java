@@ -89,8 +89,7 @@ public class AuthController {
 
         return new BaseResponse<>(HttpStatus.OK.value(), "재발급 성공", newTokens, true);
     }
-
-
+    @Operation(summary = "네이버 로그인", description = "네이버 로그인 API")
     @GetMapping("/signup/naver")
     public void naverLogin(
             @RequestParam("code") String code,
@@ -103,20 +102,20 @@ public class AuthController {
         String accessToken = loginResponse.getJwtDto().getAccessToken();
         boolean isNew = loginResponse.isNewMember();
 
-        // HttpOnly 쿠키로 accessToken 저장
+        // HttpOnly 쿠키로 accessToken 저장 (도메인: .ma-ping.com)
         Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true); // HTTPS 환경에서만 전송
         accessTokenCookie.setPath("/");
+        accessTokenCookie.setDomain(".ma-ping.com"); // 도메인 전체에서 사용
         accessTokenCookie.setMaxAge(60 * 60 * 24); // 1일
 
         response.addCookie(accessTokenCookie);
 
         // 프론트엔드로는 신규가입여부만 쿼리로 전달
-        String frontendRedirect = "https://api.ma-ping.com/social-callback?isNew=" + isNew;
+        String frontendRedirect = "https://ma-ping.com/social-callback?isNew=" + isNew;
         response.sendRedirect(frontendRedirect);
     }
-
 
     @Operation(summary = "구글 로그인", description = "구글 로그인 API")
     @GetMapping("/signup/google")
@@ -127,21 +126,19 @@ public class AuthController {
     ) throws IOException {
         OAuthLoginResponse loginResponse = oAuthService.googleLogin(code);
 
-        // accessToken 추출
         String accessToken = loginResponse.getJwtDto().getAccessToken();
         boolean isNew = loginResponse.isNewMember();
 
-        // HttpOnly 쿠키로 accessToken 저장
         Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
         accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true); // HTTPS 환경에서만 전송
+        accessTokenCookie.setSecure(true);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60 * 24); // 1일
+        accessTokenCookie.setDomain(".ma-ping.com");
+        accessTokenCookie.setMaxAge(60 * 60 * 24);
 
         response.addCookie(accessTokenCookie);
 
-        // 프론트엔드로는 신규가입여부만 쿼리로 전달
-        String frontendRedirect = "https://api.ma-ping.com/social-callback?isNew=" + isNew;
+        String frontendRedirect = "https://ma-ping.com/social-callback?isNew=" + isNew;
         response.sendRedirect(frontendRedirect);
     }
 
