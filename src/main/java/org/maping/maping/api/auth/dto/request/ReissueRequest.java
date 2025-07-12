@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class ReissueRequest {
-    @Schema(description = "Refresh token", example = "Bearer token(Refresh Token)")
-    private String refreshToken;
+    @Schema(description = "Access token", example = "Bearer token(Access Token)")
+    private String accessToken;
 }

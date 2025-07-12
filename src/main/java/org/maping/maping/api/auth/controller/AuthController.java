@@ -4,6 +4,7 @@ import groovy.util.logging.Slf4j;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,9 @@ import org.maping.maping.api.auth.service.AuthService;
 import org.maping.maping.api.auth.service.MailService;
 import org.maping.maping.api.auth.service.OAuthService;
 import org.maping.maping.common.enums.expection.ErrorCode;
+import org.maping.maping.common.utills.jwt.JWTUtill;
 import org.maping.maping.common.utills.jwt.dto.JwtDto;
+import org.maping.maping.common.utills.redis.JwtRedisService;
 import org.maping.maping.exceptions.CustomException;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
@@ -39,6 +43,8 @@ public class AuthController {
     private final OAuthService oAuthService;
     private final MailService mailService;
     private final AuthService authService;
+    private final JwtRedisService jwtRedisService;
+    private final JWTUtill jwtUtil;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Operation(summary = "회원가입", description = "사용자를 등록하는 API")
@@ -54,11 +60,8 @@ public class AuthController {
     public BaseResponse<JwtDto> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         JwtDto jwtDto = authService.login(loginRequest.getEmail(), loginRequest.getPassword());
 
-
         String accessToken = jwtDto.getAccessToken();
         String refreshToken = jwtDto.getRefreshToken();
-
-
 
         Cookie accessTokenCookie = new Cookie("accessToken", accessToken); // 쿠키 이름은 'accessToken', 값은 발급받은 JWT
 
@@ -67,16 +70,13 @@ public class AuthController {
         accessTokenCookie.setSecure(true);
         accessTokenCookie.setPath("/");
 
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
-
+        Duration refreshTokenDuration = Duration.ofDays(28);
         response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
-
+        jwtRedisService.saveRefreshToken(
+                accessToken,
+                refreshToken,
+                refreshTokenDuration
+        );
         return new BaseResponse<>(HttpStatus.OK.value(), "로그인 성공", jwtDto, true);
     }
 
@@ -84,11 +84,44 @@ public class AuthController {
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("/reissue")
     public BaseResponse<JwtDto> reissue(@RequestBody ReissueRequest request) {
-        JwtDto newTokens = authService.reissue(request.getRefreshToken());
+        boolean black =  jwtRedisService.isAccessTokenBlacklisted(request.getAccessToken());
 
-
-        return new BaseResponse<>(HttpStatus.OK.value(), "재발급 성공", newTokens, true);
+        if(black) {
+            return new BaseResponse<>(404, "블랙리스트에 있는 토큰입니다. 다시 로그인해주세요.", null, false);
+        } else{
+            JwtDto newTokens = authService.reissue(request.getAccessToken());
+            String accessToken = newTokens.getAccessToken();
+            String refreshToken = newTokens.getRefreshToken();
+            Duration refreshTokenDuration = Duration.ofDays(28);
+            jwtRedisService.saveRefreshToken(
+                    accessToken,
+                    refreshToken,
+                    refreshTokenDuration
+            );
+            return new BaseResponse<>(HttpStatus.OK.value(), "재발급 성공", newTokens, true);
+        }
     }
+
+    @Operation(summary = "로그아웃", description = "사용자가 로그아웃하는 API")
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/logout")
+    public BaseResponse<String> logout(@RequestBody ReissueRequest request, HttpServletRequest response) {
+        try {
+            Long userId = Long.valueOf(jwtUtil.getUserId(response));
+            Long jwtUserId = Long.valueOf(jwtUtil.getUserId(request.getAccessToken()));
+            if (userId.equals(jwtUserId)) {
+                jwtRedisService.addAccessTokenToBlacklist(request.getAccessToken(), Duration.ofDays(28));
+                jwtRedisService.deleteRefreshToken(request.getAccessToken());
+                return new BaseResponse<>(HttpStatus.OK.value(), "로그아웃 성공", "로그아웃 성공", true);
+            }
+
+        } catch (Exception e) {
+            logger.error("로그아웃 실패: {}", e.getMessage(), e);
+            return new BaseResponse<>(404, "로그아웃 실패", "로그아웃 처리 중 오류가 발생했습니다.", false);
+        }
+        return new BaseResponse<>(404, "로그아웃 실패", "로그아웃 처리 중 오류가 발생했습니다.", false);
+    }
+
     @Operation(summary = "네이버 로그인", description = "네이버 로그인 API")
     @GetMapping("/signup/naver")
     public void naverLogin(
