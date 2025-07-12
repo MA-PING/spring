@@ -120,7 +120,7 @@ public class JWTUtill {
 
     public String getUserId(HttpServletRequest request) {
         String resolveToken = resolveToken(request);
-        if(!isValidAccessToken(resolveToken)) {
+        if(isValidAccessToken(resolveToken)) {
             if (!jwtRedisService.isAccessTokenBlacklisted(resolveToken)){
                 return putUserMDC(getClaims(resolveToken));
             }else{
@@ -132,7 +132,7 @@ public class JWTUtill {
         }
     }
     public String getUserId(String request) {
-        if(!isValidAccessToken(request)) {
+        if(isValidAccessToken(request)) {
             if (!jwtRedisService.isAccessTokenBlacklisted(request)){
                 return putUserMDC(getClaims(request));
             }else{

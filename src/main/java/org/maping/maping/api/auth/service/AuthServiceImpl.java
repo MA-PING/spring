@@ -111,9 +111,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public JwtDto reissue(String refreshToken) {
-        if (jwtUtil.isValidRefreshToken(refreshToken)) {
-            String userId = jwtUtil.getClaims(refreshToken).getSubject();
+    public JwtDto reissue(String accessToken) {
+        if (jwtUtil.isValidRefreshToken(accessToken)) {
+            String userId = jwtUtil.getClaims(accessToken).getSubject();
 
 
             // 기본 role을 직접 지정 (ex. "USER")
