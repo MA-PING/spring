@@ -5,6 +5,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.maping.maping.common.utills.redis.JwtRedisService;
 import org.maping.maping.exceptions.CustomException;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,17 +25,18 @@ public class JWTUtill {
     private final long ACCESS_TOKEN_EXPIRE_TIME;
     private final long REFRESH_TOKEN_EXPIRE_TIME;
     private final SecretKey key;
-
+    private final JwtRedisService jwtRedisService;
     public static String MDC_USER_ID = "userId";
 
     public JWTUtill(
             @Value("${spring.jwt.secret-key}") String secretKey,
             @Value("${spring.jwt.access-token-expired}") long ACCESS_TOKEN_EXPIRE_TIME,
-            @Value("${spring.jwt.refresh-token-expired}") long REFRESH_TOKEN_EXPIRE_TIME
+            @Value("${spring.jwt.refresh-token-expired}") long REFRESH_TOKEN_EXPIRE_TIME, JwtRedisService jwtRedisService
     ) {
         this.ACCESS_TOKEN_EXPIRE_TIME = ACCESS_TOKEN_EXPIRE_TIME;
         this.REFRESH_TOKEN_EXPIRE_TIME = REFRESH_TOKEN_EXPIRE_TIME;
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+        this.jwtRedisService = jwtRedisService;
     }
 
     public JwtDto generateJwtDto(String userId, String role) {
@@ -119,14 +121,24 @@ public class JWTUtill {
     public String getUserId(HttpServletRequest request) {
         String resolveToken = resolveToken(request);
         if(!isValidAccessToken(resolveToken)) {
-            return putUserMDC(getClaims(resolveToken));
+            if (!jwtRedisService.isAccessTokenBlacklisted(resolveToken)){
+                return putUserMDC(getClaims(resolveToken));
+            }else{
+                throw new CustomException(ErrorCode.Unauthorized, "JWT 토큰이 블랙리스트에 있습니다.", HttpStatus.UNAUTHORIZED);
+            }
+
         }else{
             throw new CustomException(ErrorCode.Unauthorized, "JWT 토큰이 유효하지 않습니다.", HttpStatus.UNAUTHORIZED);
         }
     }
     public String getUserId(String request) {
         if(!isValidAccessToken(request)) {
-            return putUserMDC(getClaims(request));
+            if (!jwtRedisService.isAccessTokenBlacklisted(request)){
+                return putUserMDC(getClaims(request));
+            }else{
+                throw new CustomException(ErrorCode.Unauthorized, "JWT 토큰이 블랙리스트에 있습니다.", HttpStatus.UNAUTHORIZED);
+            }
+
         }else{
             throw new CustomException(ErrorCode.Unauthorized, "JWT 토큰이 유효하지 않습니다.", HttpStatus.UNAUTHORIZED);
         }

@@ -65,13 +65,14 @@ public class AuthController {
 
         Cookie accessTokenCookie = new Cookie("accessToken", accessToken); // 쿠키 이름은 'accessToken', 값은 발급받은 JWT
 
-
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
         accessTokenCookie.setPath("/");
+        accessTokenCookie.setDomain(".ma-ping.com"); // 도메인 전체에서 사용
+        accessTokenCookie.setMaxAge(60 * 60 * 24);
+        response.addCookie(accessTokenCookie);
 
         Duration refreshTokenDuration = Duration.ofDays(28);
-        response.addCookie(accessTokenCookie);
         jwtRedisService.saveRefreshToken(
                 accessToken,
                 refreshToken,
