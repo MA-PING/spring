@@ -90,7 +90,8 @@ public class AuthController {
         if(black) {
             return new BaseResponse<>(404, "블랙리스트에 있는 토큰입니다. 다시 로그인해주세요.", null, false);
         } else{
-            JwtDto newTokens = authService.reissue(request.getAccessToken());
+            String redisRefreshToken = jwtRedisService.getRefreshToken(request.getAccessToken());
+            JwtDto newTokens = authService.reissue(redisRefreshToken);
             String accessToken = newTokens.getAccessToken();
             String refreshToken = newTokens.getRefreshToken();
             Duration refreshTokenDuration = Duration.ofDays(28);
