@@ -104,6 +104,36 @@ public class CharacterServiceImpl implements CharacterService {
         characterListResponse.setCharacterInfo(characterInfoDTO);
         return characterListResponse;
     }
+
+    public List<CharacterList> getList(Long userId){
+        Optional<UserApiJpaEntity> userApiJpaEntity = UserApiRepository.findById(userId);
+        UserApiJpaEntity user = userApiJpaEntity.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 유저입니다."));
+        String ocid = null;
+        CharacterListDto characterListDto = nexonUtils.getCharacterList(user.getUserApiInfo());
+        if(characterListDto == null || characterListDto.getAccountList() == null || characterListDto.getAccountList().isEmpty()) {
+            return null;
+        }
+        if (characterListDto.getAccountList() == null || characterListDto.getAccountList().isEmpty()) {
+            throw new CustomException(ErrorCode.BadRequest, "유효하지 않은 API 키입니다.");
+        }
+        List<CharacterList> characterList = convertCharacterList(characterListDto.getAccountList().getFirst().getCharacterList());
+        UnionRankingList ranking = nexonUtils.getUnionRanking(characterList.getFirst().getOcid());
+        if (ranking == null || ranking.getRanking() == null || ranking.getRanking().isEmpty()) {
+            ocid = getMainCharacter(characterListDto.getAccountList().getFirst().getCharacterList());
+
+        }else{
+            String name = ranking.getRanking().getFirst().getCharacterName();
+            for (CharacterList c : characterList) {
+                if (c.getCharacterName().equals(name)) {
+                    ocid = c.getOcid();
+                    break;
+                }
+            }
+        }
+
+        return convertCharacterList(characterList, ocid);
+    }
+
     public List<CharacterList> convertCharacterList(List<CharacterListAccountCharacterDTO> characterList) {
         return characterList.stream()
                 .map(character -> {

@@ -17,4 +17,5 @@ public interface CharacterService {
     public CharacterInfoDTO getRefreshCharacterInfo(String characterName);
 
     List<CharacterList> getApiCheck(String apiKey);
+    public List<CharacterList> getList(Long userId);
 }

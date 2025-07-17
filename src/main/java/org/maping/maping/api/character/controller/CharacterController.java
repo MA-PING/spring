@@ -76,5 +76,11 @@ public class CharacterController {
         return new BaseResponse<>(HttpStatus.OK.value(), "api 키를 검증을 성공하였습니다.", characterServiceImpl.getApiCheck(apiKey.getApiKey()));
     }
 
-
+    @Operation(summary = "캐릭터 리스트만", description = "Api 로 캐릭터 리스트만 가져오는 API")
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("character/onlyList")
+    public BaseResponse<List<CharacterList>> getOnlyCharacterList(HttpServletRequest request) {
+        Long userId = Long.valueOf(jwtUtil.getUserId(request));
+        return new BaseResponse<>(HttpStatus.OK.value(), "캐릭터 리스트를 가져오는데 성공하였습니다.", characterServiceImpl.getList(userId));
+    }
 }
