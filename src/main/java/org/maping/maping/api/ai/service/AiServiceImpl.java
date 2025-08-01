@@ -56,7 +56,7 @@ public class AiServiceImpl implements AiService{
     }
 
     @Override
-    public Flux<String> getAiStat(String ocid) {
+    public BaseResponse<String> getAiStat(String ocid) throws HttpException, IOException {
 
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
         String basicString = nexonUtils.basicString(basic);
@@ -69,12 +69,11 @@ public class AiServiceImpl implements AiService{
                 "답변할때 내가 알려준 기본정보와 스택을 다시 알려주지 않아도돼. \n" +
                 "그리고 200자 이내로 대답해줘.";
 
-
-        return geminiUtils.getGeminiStreamResponse(text);
+        return new BaseResponse<>(HttpStatus.OK.value(), "스탯 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
 
     @Override
-    public Flux<String> getAiItem(String ocid) throws HttpException, IOException {
+    public BaseResponse<String> getAiItem(String ocid) throws HttpException, IOException {
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
         String basicString = nexonUtils.basicString(basic);
         CharacterItemEquipmentDTO itemEquipment = nexonUtils.getCharacterItemEquip(ocid);
@@ -85,12 +84,11 @@ public class AiServiceImpl implements AiService{
                 "좋으면 답변할 때 맨 앞에 1~5로 매우 좋으면 5에서 매우 안 좋으면 1로 점수를 매겨서 알려줘 \n" +
                 "답변할때 내가 알려준 기본정보와 스택을 다시 알려주지 않아도돼. \n" +
                 "그리고 200자 이내로 대답해줘.";
-
-        return geminiUtils.getGeminiStreamResponse(text);
+        return new BaseResponse<>(HttpStatus.OK.value(), "장비 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
 
     @Override
-    public Flux<String> getAiUnion(String ocid) throws HttpException, IOException {
+    public BaseResponse<String> getAiUnion(String ocid) throws HttpException, IOException {
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
         String basicString = nexonUtils.basicString(basic);
         UnionDTO union = nexonUtils.getUnion(ocid);
@@ -103,11 +101,11 @@ public class AiServiceImpl implements AiService{
                 "답변할때 내가 알려준 기본정보와 스택을 다시 알려주지 않아도돼. \n" +
                 "그리고 200자 이내로 대답해줘.";
 
-        return geminiUtils.getGeminiStreamResponse(text);
+        return new BaseResponse<>(HttpStatus.OK.value(), "유니온 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
 
     @Override
-    public Flux<String> getAiArtifact(String ocid) throws HttpException, IOException {
+    public BaseResponse<String> getAiArtifact(String ocid) throws HttpException, IOException {
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
         String basicString = nexonUtils.basicString(basic);
         UnionArtifactDTO unionArtifact = nexonUtils.getUnionArtifact(ocid);
@@ -118,11 +116,11 @@ public class AiServiceImpl implements AiService{
                 "좋으면 답변할 때 맨 앞에 1~5로 매우 좋으면 5에서 매우 안 좋으면 1로 점수를 매겨서 알려줘 \n" +
                 "답변할때 내가 알려준 기본정보와 스택을 다시 알려주지 않아도돼. \n" +
                 "그리고 200자 이내로 대답해줘.";
-        return geminiUtils.getGeminiStreamResponse(text);
+        return new BaseResponse<>(HttpStatus.OK.value(), "유니온 아티팩트 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
 
     @Override
-    public Flux<String> getAiSkill(String ocid) throws HttpException, IOException {
+    public BaseResponse<String> getAiSkill(String ocid) throws HttpException, IOException {
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
         String basicString = nexonUtils.basicString(basic);
         CharacterSkillDTO skill5 = nexonUtils.getCharacterSkill5(ocid, 5);
@@ -135,11 +133,11 @@ public class AiServiceImpl implements AiService{
                 "좋으면 답변할 때 맨 앞에 1~5로 매우 좋으면 5에서 매우 안 좋으면 1로 점수를 매겨서 알려줘 \n" +
                 "답변할때 내가 알려준 기본정보와 스택을 다시 알려주지 않아도돼. \n" +
                 "그리고 200자 이내로 대답해줘.";
-        return geminiUtils.getGeminiStreamResponse(text);
+        return new BaseResponse<>(HttpStatus.OK.value(), "스킬 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
 
     @Override
-    public Flux<String> getAiSymbol(String ocid) throws HttpException, IOException {
+    public BaseResponse<String> getAiSymbol(String ocid) throws HttpException, IOException {
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
         String basicString = nexonUtils.basicString(basic);
         CharacterSymbolEquipmentDTO symbol = nexonUtils.getCharacterSymbolEquipment(ocid);
@@ -149,7 +147,7 @@ public class AiServiceImpl implements AiService{
                 "좋으면 답변할 때 맨 앞에 1~5로 매우 좋으면 5에서 매우 안 좋으면 1로 점수를 매겨서 알려줘 \n" +
                 "답변할때 내가 알려준 기본정보와 스택을 다시 알려주지 않아도돼. \n" +
                 "그리고 200자 이내로 대답해줘.";
-        return geminiUtils.getGeminiStreamResponse(text);
+        return new BaseResponse<>(HttpStatus.OK.value(), "심볼 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
 
     @Override

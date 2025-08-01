@@ -35,9 +35,9 @@ public class AiController {
 
     @Operation(summary = "스텟 맞춤 훈수", description = "GEMINI 스텟 맞춤 훈수를 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "stat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> getAiStat(HttpServletRequest request,
-                                          @RequestBody AiAdviceRequest requestDTO){
+    @GetMapping(value = "stat")
+    public BaseResponse<String> getAiStat(HttpServletRequest request,
+                                          @RequestBody AiAdviceRequest requestDTO) throws HttpException, IOException {
         if(jwtUtil.getUserId(request) == null) {
             throw new CustomException(ErrorCode.BadRequest, "로그인이 필요합니다.");
         }
@@ -46,8 +46,8 @@ public class AiController {
 
     @Operation(summary = "장비 맞춤 훈수", description = "GEMINI 장비 맞춤 훈수를 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "item", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> getAiEquip(HttpServletRequest request,
+    @GetMapping(value = "item")
+    public BaseResponse<String> getAiEquip(HttpServletRequest request,
                                            @RequestBody AiAdviceRequest requestDTO) throws HttpException, IOException {
         if(jwtUtil.getUserId(request) == null) {
             throw  new CustomException(ErrorCode.BadRequest, "로그인이 필요합니다.");
@@ -57,8 +57,8 @@ public class AiController {
 
     @Operation(summary = "유니온 맞춤 훈수", description = "GEMINI 유니온 맞춤 훈수를 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "union", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public  Flux<String> getAiUnion(HttpServletRequest request,
+    @GetMapping(value = "union")
+    public  BaseResponse<String> getAiUnion(HttpServletRequest request,
                                            @RequestBody AiAdviceRequest requestDTO) throws HttpException, IOException {
         if(jwtUtil.getUserId(request) == null) {
             throw  new CustomException(ErrorCode.BadRequest, "로그인이 필요합니다.");
@@ -68,8 +68,8 @@ public class AiController {
 
     @Operation(summary = "아티펙트 맞춤 훈수", description = "GEMINI 아티펙트 맞춤 훈수를 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "artifact", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public  Flux<String> getAiArtifact(HttpServletRequest request,
+    @GetMapping(value = "artifact")
+    public  BaseResponse<String> getAiArtifact(HttpServletRequest request,
                                               @RequestBody AiAdviceRequest requestDTO) throws HttpException, IOException {
         if(jwtUtil.getUserId(request) == null) {
             throw  new CustomException(ErrorCode.BadRequest, "로그인이 필요합니다.");
@@ -79,8 +79,8 @@ public class AiController {
 
     @Operation(summary = "스킬 맞춤 훈수", description = "GEMINI 스킬 맞춤 훈수를 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "skill", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public  Flux<String> getAiSkill(HttpServletRequest request,
+    @GetMapping(value = "skill")
+    public  BaseResponse<String> getAiSkill(HttpServletRequest request,
                                            @RequestBody AiAdviceRequest requestDTO) throws HttpException, IOException {
         if(jwtUtil.getUserId(request) == null) {
             throw  new CustomException(ErrorCode.BadRequest, "로그인이 필요합니다.");
@@ -90,8 +90,8 @@ public class AiController {
 
     @Operation(summary = "심볼 맞춤 훈수", description = "GEMINI 심볼 맞춤 훈수를 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "symbol", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public  Flux<String> getAiSymbol(HttpServletRequest request,
+    @GetMapping(value = "symbol")
+    public  BaseResponse<String> getAiSymbol(HttpServletRequest request,
                                             @RequestBody AiAdviceRequest requestDTO) throws HttpException, IOException {
         if(jwtUtil.getUserId(request) == null) {
             throw  new CustomException(ErrorCode.BadRequest, "로그인이 필요합니다.");

@@ -14,15 +14,15 @@ import java.io.IOException;
 import java.util.List;
 
 public interface AiService {
-    Flux<String> getAiStat(String ocid);
-    Flux<String> getAiItem(String ocid) throws HttpException, IOException;
-    Flux<String> getAiUnion(String ocid) throws HttpException, IOException;
+    BaseResponse<String> getAiStat(String ocid) throws HttpException, IOException;
+    BaseResponse<String> getAiItem(String ocid) throws HttpException, IOException;
+    BaseResponse<String> getAiUnion(String ocid) throws HttpException, IOException;
 
-    Flux<String> getAiArtifact(String ocid) throws HttpException, IOException;
+    BaseResponse<String> getAiArtifact(String ocid) throws HttpException, IOException;
 
-    Flux<String> getAiSkill(String ocid) throws HttpException, IOException;
+    BaseResponse<String> getAiSkill(String ocid) throws HttpException, IOException;
 
-    Flux<String> getAiSymbol(String ocid) throws HttpException, IOException;
+    BaseResponse<String> getAiSymbol(String ocid) throws HttpException, IOException;
 
     List<NoticeSummaryResponse> getNoticeSummary();
 
