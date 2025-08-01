@@ -188,3 +188,4 @@ public class AiController {
         return new BaseResponse<>(HttpStatus.OK.value(), "유저 추천 질문을 가져오는데 성공하였습니다.", aiServiceImpl.getUserRecommend());
     }
 }
+// Git Commit Test
