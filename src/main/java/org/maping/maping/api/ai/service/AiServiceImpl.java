@@ -65,7 +65,7 @@ public class AiServiceImpl implements AiService{
 
         String text = "기본정보 : {" + basicString + "}, 스탯 : {" + statString + "}\n" +
                 "메이플 캐릭터의 기본 정보와 스탯 정보야 이걸로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
-                "답변할때 내가 알려준 기본정보와 스탯을 다시 알려주지 않아도돼. \n" +
+                "답변할때 내가 알려준 기본정보와 스탯을 다시 알려주지 않아도돼.  서두나 부연 설명은 일절 포함하지 마.\n" +
                 "그리고 200자 이내로 대답해줘.";
 
         return new BaseResponse<>(HttpStatus.OK.value(), "스탯 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
@@ -80,7 +80,7 @@ public class AiServiceImpl implements AiService{
 
         String text = "기본정보 : {" + basicString + "}, 장비 : {" + itemString + "}\n" +
                 "메이플 캐릭터의 기본 정보와 장비 정보야 이걸로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
-                "답변할때 내가 알려준 기본정보와 장비를 다시 알려주지 않아도돼. \n" +
+                "답변할때 내가 알려준 기본정보와 장비를 다시 알려주지 않아도돼. 서두나 부연 설명은 일절 포함하지 마. \n" +
                 "그리고 200자 이내로 대답해줘.";
         return new BaseResponse<>(HttpStatus.OK.value(), "장비 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
@@ -95,7 +95,7 @@ public class AiServiceImpl implements AiService{
 
         String text = "기본정보 : {" + basicString + "}, 유니온 : {" + unionString + "}\n" +
                 "메이플 캐릭터의 기본 정보와 유니온과 유니온 레이더 정보야 이걸로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
-                "답변할때 내가 알려준 기본정보와 유니온을 다시 알려주지 않아도돼. \n" +
+                "답변할때 내가 알려준 기본정보와 유니온을 다시 알려주지 않아도돼. 서두나 부연 설명은 일절 포함하지 마. \n" +
                 "그리고 200자 이내로 대답해줘.";
 
         return new BaseResponse<>(HttpStatus.OK.value(), "유니온 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
@@ -110,7 +110,7 @@ public class AiServiceImpl implements AiService{
 
         String text = "기본정보 : {" + basicString + "}, 유니온 아티팩트 : {" + artifactString + "}\n" +
                 "메이플 캐릭터의 기본 정보와 유니온 아티팩트 정보야 이걸로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
-                "답변할때 내가 알려준 기본정보와 유니온 아티팩트를 다시 알려주지 않아도돼. \n" +
+                "답변할때 내가 알려준 기본정보와 유니온 아티팩트를 다시 알려주지 않아도돼. 서두나 부연 설명은 일절 포함하지 마. \n" +
                 "그리고 200자 이내로 대답해줘.";
         return new BaseResponse<>(HttpStatus.OK.value(), "유니온 아티팩트 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
@@ -126,7 +126,7 @@ public class AiServiceImpl implements AiService{
 
         String text = "기본정보 : {" + basicString + "}, 스킬 : {" + skillString + "}\n" +
                 "메이플 캐릭터의 기본 정보와 스킬 정보야 이걸로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
-                "답변할때 내가 알려준 기본정보와 스킬을 다시 알려주지 않아도돼. \n" +
+                "답변할때 내가 알려준 기본정보와 스킬을 다시 알려주지 않아도돼. 서두나 부연 설명은 일절 포함하지 마. \n" +
                 "그리고 200자 이내로 대답해줘.";
         return new BaseResponse<>(HttpStatus.OK.value(), "스킬 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
@@ -140,7 +140,7 @@ public class AiServiceImpl implements AiService{
 
         String text = "기본정보 : {" + basicString + "}, 스킬 : {" + skillString + "}\n" +
                 "메이플 캐릭터의 기본 정보와 스킬 정보야 이걸로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
-                "답변할때 내가 알려준 기본정보와 스킬을 다시 알려주지 않아도돼. \n" +
+                "답변할때 내가 알려준 기본정보와 스킬을 다시 알려주지 않아도돼. 서두나 부연 설명은 일절 포함하지 마. \n" +
                 "그리고 200자 이내로 대답해줘.";
         return new BaseResponse<>(HttpStatus.OK.value(), "스킬 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
@@ -153,7 +153,7 @@ public class AiServiceImpl implements AiService{
         String symbolString = nexonUtils.symbolString(symbol);
         String text = "기본정보 : {" + basicString + "}, 심볼 : {" + symbolString + "}\n" +
                 "메이플 캐릭터의 기본 정보와 심볼 정보야 이걸로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
-                "답변할때 내가 알려준 기본정보와 심볼 정보를 다시 알려주지 않아도돼. \n" +
+                "답변할때 내가 알려준 기본정보와 심볼 정보를 다시 알려주지 않아도돼. 서두나 부연 설명은 일절 포함하지 마. \n" +
                 "그리고 200자 이내로 대답해줘.";
         return new BaseResponse<>(HttpStatus.OK.value(), "심볼 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
@@ -177,7 +177,7 @@ public class AiServiceImpl implements AiService{
                 ", 2일 전 : {레벨 : {"+level[5].getCharacterLevel()+"}, 경험치 : {"+level[5].getCharacterExp()+"}}\n" +
                 ", 1일 전 : {레벨 : {"+level[6].getCharacterLevel()+"}, 경험치 : {"+level[6].getCharacterExp()+"}}\n" +
                 "메이플 캐릭터의 기본 정보와 일주일 간의 레벨과 경험치로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
-                "답변할때 내가 알려준 기본정보와 레벨 정보를 다시 알려주지 않아도돼. \n" +
+                "답변할때 내가 알려준 기본정보와 레벨 정보를 다시 알려주지 않아도돼. 서두나 부연 설명은 일절 포함하지 마.\n" +
                 "그리고 200자 이내로 대답해줘.";
 
         return new BaseResponse<>(HttpStatus.OK.value(), "레벨 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
