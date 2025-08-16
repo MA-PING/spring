@@ -106,7 +106,7 @@ public class GEMINIUtils {
     }
     public String getNoticeSummary(String content) throws HttpException, IOException {
         String text = content + "\n" +
-                "메이플 패치노트를 요약해서 알려줘.";
+                "메이플 패치노트를 요약해서 알려줘. 서두를 일절 포함하지 마.";
         return getGeminiResponse(text);
     }
     public String getVersion(String title) {
