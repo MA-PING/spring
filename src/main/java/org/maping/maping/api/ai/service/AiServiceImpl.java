@@ -2,8 +2,6 @@ package org.maping.maping.api.ai.service;
 
 import autovalue.shaded.org.checkerframework.checker.nullness.qual.Nullable;
 import com.google.common.collect.ImmutableList;
-import com.google.genai.ResponseStream;
-import com.google.genai.types.GenerateContentResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpException;
 import org.maping.maping.api.ai.dto.response.*;
@@ -31,10 +29,12 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import com.google.genai.types.Content;
+
 import com.google.genai.types.Part;
 @Slf4j
 @Service
@@ -132,6 +132,20 @@ public class AiServiceImpl implements AiService{
     }
 
     @Override
+    public BaseResponse<String> getAiLinkSkill(String ocid) throws HttpException, IOException {
+        CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
+        String basicString = nexonUtils.basicString(basic);
+        CharacterLinkSkillDTO linkSkill = nexonUtils.getCharacterLinkSkill(ocid);
+        String skillString = nexonUtils.LinkskillString(linkSkill);
+
+        String text = "기본정보 : {" + basicString + "}, 스킬 : {" + skillString + "}\n" +
+                "메이플 캐릭터의 기본 정보와 스킬 정보야 이걸로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
+                "답변할때 내가 알려준 기본정보와 스킬을 다시 알려주지 않아도돼. \n" +
+                "그리고 200자 이내로 대답해줘.";
+        return new BaseResponse<>(HttpStatus.OK.value(), "스킬 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
+    }
+
+    @Override
     public BaseResponse<String> getAiSymbol(String ocid) throws HttpException, IOException {
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
         String basicString = nexonUtils.basicString(basic);
@@ -142,6 +156,31 @@ public class AiServiceImpl implements AiService{
                 "답변할때 내가 알려준 기본정보와 심볼 정보를 다시 알려주지 않아도돼. \n" +
                 "그리고 200자 이내로 대답해줘.";
         return new BaseResponse<>(HttpStatus.OK.value(), "심볼 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
+    }
+
+    @Override
+    public BaseResponse<String> getAiLevel(String ocid) throws HttpException, IOException {
+        CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
+        String basicString = nexonUtils.basicString(basic);
+        CharacterBasicDTO[] level = new CharacterBasicDTO[7];
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        for(int i = 0; i < 7; i++){
+            LocalDate date = LocalDate.now().minusDays(7 - i);
+            String formattedDate = date.format(formatter);
+            level[i] = nexonUtils.getCharacterLevel(ocid, formattedDate);
+        }
+        String text = "기본정보 : {" + basicString + "}, 7일 전 : {레벨 : {"+level[0].getCharacterLevel()+"}, 경험치 : {"+level[0].getCharacterExp()+"}}\n" +
+                ", 6일 전 : {레벨 : {"+level[1].getCharacterLevel()+"}, 경험치 : {"+level[1].getCharacterExp()+"}}\n" +
+                ", 5일 전 : {레벨 : {"+level[2].getCharacterLevel()+"}, 경험치 : {"+level[2].getCharacterExp()+"}}\n" +
+                ", 4일 전 : {레벨 : {"+level[3].getCharacterLevel()+"}, 경험치 : {"+level[3].getCharacterExp()+"}}\n" +
+                ", 3일 전 : {레벨 : {"+level[4].getCharacterLevel()+"}, 경험치 : {"+level[4].getCharacterExp()+"}}\n" +
+                ", 2일 전 : {레벨 : {"+level[5].getCharacterLevel()+"}, 경험치 : {"+level[5].getCharacterExp()+"}}\n" +
+                ", 1일 전 : {레벨 : {"+level[6].getCharacterLevel()+"}, 경험치 : {"+level[6].getCharacterExp()+"}}\n" +
+                "메이플 캐릭터의 기본 정보와 일주일 간의 레벨과 경험치로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
+                "답변할때 내가 알려준 기본정보와 레벨 정보를 다시 알려주지 않아도돼. \n" +
+                "그리고 200자 이내로 대답해줘.";
+
+        return new BaseResponse<>(HttpStatus.OK.value(), "레벨 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
 
     @Override
@@ -249,18 +288,62 @@ public class AiServiceImpl implements AiService{
     }
 
     @Override
-    public String getCharacterRecommend(String ocid) throws HttpException, IOException {
+    public String[] getCharacterRecommend(String ocid) throws HttpException, IOException {
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
         String basicString = nexonUtils.basicString(basic);
-        String text = "기본정보 : {" + basicString + "}\n" +
-                "메이플 캐릭터의 기본 정보야 사용자가 AI 에게 물어볼만한 추천 질문 5개를 알려줘.\n {질문1}\n {질문2}\n {질문3}\n {질문4}\n {질문5} \n이런식으로 질문만 30자 이내로 대답해줘";
-        return geminiUtils.getGeminiGoogleResponse(text);
+        String text = "1. 지시문\n" +
+                "참고자료의 캐릭터 정보를 보고, 이 캐릭터를 육성하는 유저가 AI에게 직접 물어볼 만한 질문 5가지를 생성해 줘. 질문은 30자 이내로 작성해줘. 출력은 질문 5개만 번호를 붙여서 나열해줘. 서두나 부연 설명은 일절 포함하지 마.\n" +
+                "2. 참고자료\n" +
+                "기본정보: {" + basicString + "}\n" +
+                "3. 출력구조\n" +
+                "1. 질문 1\n" +
+                "2. 질문 2\n" +
+                "3. 질문 3\n" +
+                "4. 질문 4\n" +
+                "5. 질문 5\n" +
+                "질문 5개만 위 출력구조 형식으로 출력해줘.";
+        String geminiResponse = geminiUtils.getGeminiGoogleResponse(text);
+        return converQuestion(geminiResponse);
     }
 
     @Override
-    public String getUserRecommend() throws HttpException, IOException {
-        String text = "메이플 스토리 유저가 AI 에게 물어볼만한 추천 질문 5개를 알려줘.\n {질문1}\n {질문2}\n {질문3}\n {질문4}\n {질문5} \n이런식으로 질문만 30자 이내로 대답해줘";
-        return geminiUtils.getGeminiGoogleResponse(text);
+    public String[] getUserRecommend() throws HttpException, IOException {
+        String text = """
+                1. 지시문
+                메이플 스토리 유저가 AI에게 직접 물어볼 만한 질문 5가지를 생성해 줘. 질문은 30자 이내로 작성해줘. 출력은 질문 5개만 번호를 붙여서 나열해줘. 서두나 부연 설명은 일절 포함하지 마.
+                2. 출력구조
+                1. 질문 1
+                2. 질문 2
+                3. 질문 3
+                4. 질문 4
+                5. 질문 5
+                질문 5개만 위 출력구조 형식으로 출력해줘.""";
+        String geminiResponse = geminiUtils.getGeminiGoogleResponse(text);
+        return converQuestion(geminiResponse);
+    }
+
+    public String[] converQuestion(String geminiResponse){
+        String[] lines = geminiResponse.split("\n");
+
+        // 서두가 있으면 startIndex를 1로, 없으면 0으로 설정
+        int startIndex = 0;
+        if (lines.length > 0 && !lines[0].trim().matches("^\\d+\\..*")) {
+            startIndex = 1;
+        }
+
+        // 유효한 질문만 담을 리스트
+        List<String> validQuestions = new ArrayList<>();
+
+        for (int i = startIndex; i < lines.length; i++) {
+            String question = lines[i].replaceAll("^\\d+\\.?\\s*", "").trim();
+            // 비어 있지 않은 질문만 리스트에 추가
+            if (!question.isEmpty()) {
+                validQuestions.add(question);
+            }
+        }
+
+        // 리스트를 배열로 변환하여 반환
+        return validQuestions.toArray(new String[0]);
     }
 
     @Override

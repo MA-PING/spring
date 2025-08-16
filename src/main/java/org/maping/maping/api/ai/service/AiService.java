@@ -22,15 +22,19 @@ public interface AiService {
 
     BaseResponse<String> getAiSkill(String ocid) throws HttpException, IOException;
 
+    BaseResponse<String> getAiLinkSkill(String ocid) throws HttpException, IOException;
+
     BaseResponse<String> getAiSymbol(String ocid) throws HttpException, IOException;
+
+    BaseResponse<String> getAiLevel(String ocid) throws HttpException, IOException;
 
     List<NoticeSummaryResponse> getNoticeSummary();
 
     AiChatResponse getChat(Long userId, String chatId, String characterName, String type, String ocid, String text) throws HttpException, IOException;
 
-    String getCharacterRecommend(String ocid) throws HttpException, IOException;
+    String[] getCharacterRecommend(String ocid) throws HttpException, IOException;
 
-    String getUserRecommend() throws HttpException, IOException;
+    String[] getUserRecommend() throws HttpException, IOException;
 
     List<AiHistoryResponse> getHistory(Long userId);
 

@@ -88,6 +88,17 @@ public class AiController {
         return aiServiceImpl.getAiSkill(requestDTO.getOcid());
     }
 
+    @Operation(summary = "링크 스킬 맞춤 훈수", description = "GEMINI 링크 스킬 맞춤 훈수를 가져오는 API")
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping(value = "linkSkill")
+    public  BaseResponse<String> getAiLinkSkill(HttpServletRequest request,
+                                            @RequestBody AiAdviceRequest requestDTO) throws HttpException, IOException {
+        if(jwtUtil.getUserId(request) == null) {
+            throw  new CustomException(ErrorCode.BadRequest, "로그인이 필요합니다.");
+        }
+        return aiServiceImpl.getAiLinkSkill(requestDTO.getOcid());
+    }
+
     @Operation(summary = "심볼 맞춤 훈수", description = "GEMINI 심볼 맞춤 훈수를 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping(value = "symbol")
@@ -97,6 +108,17 @@ public class AiController {
             throw  new CustomException(ErrorCode.BadRequest, "로그인이 필요합니다.");
         }
         return aiServiceImpl.getAiSymbol(requestDTO.getOcid());
+    }
+
+    @Operation(summary = "레벨 맞춤 훈수", description = "GEMINI 레벨 맞춤 훈수를 가져오는 API")
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping(value = "level")
+    public  BaseResponse<String> getAiLevel(HttpServletRequest request,
+                                             @RequestBody AiAdviceRequest requestDTO) throws HttpException, IOException {
+        if(jwtUtil.getUserId(request) == null) {
+            throw  new CustomException(ErrorCode.BadRequest, "로그인이 필요합니다.");
+        }
+        return aiServiceImpl.getAiLevel(requestDTO.getOcid());
     }
 
     @Operation(summary = "패치노트 요약", description = "GEMINI 패치노트 요약을 가져오는 API")
@@ -173,10 +195,10 @@ public class AiController {
     @Operation(summary = "캐릭터 추천 질문", description = "GEMINI 캐릭터 추천 질문을 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("recommend/character")
-    public BaseResponse<String> getCharacterRecommend(HttpServletRequest request,
+    public BaseResponse<String[]> getCharacterRecommend(HttpServletRequest request,
                                              @RequestBody AiAdviceRequest requestDTO) throws HttpException, IOException {
         if(jwtUtil.getUserId(request) == null) {
-            return new BaseResponse<>(HttpStatus.UNAUTHORIZED.value(), "로그인이 필요합니다.", "로그인이 필요합니다.");
+            throw  new CustomException(ErrorCode.BadRequest, "로그인이 필요합니다.");
         }
         return new BaseResponse<>(HttpStatus.OK.value(), "유저 추천 질문을 가져오는데 성공하였습니다.", aiServiceImpl.getCharacterRecommend(requestDTO.getOcid()));
     }
@@ -184,7 +206,7 @@ public class AiController {
     @Operation(summary = "유저 추천 질문", description = "GEMINI 유저 추천 질문을 가져오는 API")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("recommend/user")
-    public BaseResponse<String> getUserRecommend() throws HttpException, IOException {
+    public BaseResponse<String[]> getUserRecommend() throws HttpException, IOException {
         return new BaseResponse<>(HttpStatus.OK.value(), "유저 추천 질문을 가져오는데 성공하였습니다.", aiServiceImpl.getUserRecommend());
     }
 }
