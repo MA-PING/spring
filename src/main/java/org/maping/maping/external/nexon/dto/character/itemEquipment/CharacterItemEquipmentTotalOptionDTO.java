@@ -98,6 +98,7 @@ public class CharacterItemEquipmentTotalOptionDTO {
     /**
      * 데미지(%)
      */
+    @JsonProperty("damage")
     private String damage;
 
     /**

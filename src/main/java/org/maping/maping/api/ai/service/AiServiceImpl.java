@@ -11,9 +11,16 @@ import org.maping.maping.exceptions.CustomException;
 import org.maping.maping.external.gemini.GEMINIUtils;
 import org.maping.maping.external.nexon.NEXONUtils;
 import org.maping.maping.external.nexon.dto.character.CharacterBasicDTO;
+import org.maping.maping.external.nexon.dto.character.CharacterInfoDTO;
+import org.maping.maping.external.nexon.dto.character.ability.CharacterAbilityDTO;
+import org.maping.maping.external.nexon.dto.character.ability.CharacterAbilityInfoDTO;
 import org.maping.maping.external.nexon.dto.character.itemEquipment.CharacterItemEquipmentDTO;
+import org.maping.maping.external.nexon.dto.character.itemEquipment.CharacterItemEquipmentInfoDTO;
 import org.maping.maping.external.nexon.dto.character.skill.CharacterLinkSkillDTO;
 import org.maping.maping.external.nexon.dto.character.skill.CharacterSkillDTO;
+import org.maping.maping.external.nexon.dto.character.stat.CharacterFinalStatDTO;
+import org.maping.maping.external.nexon.dto.character.stat.CharacterHyperStatDTO;
+import org.maping.maping.external.nexon.dto.character.stat.CharacterHyperStatPresetDTO;
 import org.maping.maping.external.nexon.dto.character.stat.CharacterStatDto;
 import org.maping.maping.external.nexon.dto.character.symbol.CharacterSymbolEquipmentDTO;
 import org.maping.maping.external.nexon.dto.union.UnionArtifactDTO;
@@ -34,6 +41,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 import com.google.genai.types.Part;
 @Slf4j
@@ -161,7 +169,6 @@ public class AiServiceImpl implements AiService{
     @Override
     public BaseResponse<String> getAiLevel(String ocid) throws HttpException, IOException {
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
-        String basicString = nexonUtils.basicString(basic);
         CharacterBasicDTO[] level = new CharacterBasicDTO[7];
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         for(int i = 0; i < 7; i++){
@@ -169,17 +176,36 @@ public class AiServiceImpl implements AiService{
             String formattedDate = date.format(formatter);
             level[i] = nexonUtils.getCharacterLevel(ocid, formattedDate);
         }
-        String text = "기본정보 : {" + basicString + "}, 7일 전 : {레벨 : {"+level[0].getCharacterLevel()+"}, 경험치 : {"+level[0].getCharacterExp()+"}}\n" +
-                ", 6일 전 : {레벨 : {"+level[1].getCharacterLevel()+"}, 경험치 : {"+level[1].getCharacterExp()+"}}\n" +
-                ", 5일 전 : {레벨 : {"+level[2].getCharacterLevel()+"}, 경험치 : {"+level[2].getCharacterExp()+"}}\n" +
-                ", 4일 전 : {레벨 : {"+level[3].getCharacterLevel()+"}, 경험치 : {"+level[3].getCharacterExp()+"}}\n" +
-                ", 3일 전 : {레벨 : {"+level[4].getCharacterLevel()+"}, 경험치 : {"+level[4].getCharacterExp()+"}}\n" +
-                ", 2일 전 : {레벨 : {"+level[5].getCharacterLevel()+"}, 경험치 : {"+level[5].getCharacterExp()+"}}\n" +
-                ", 1일 전 : {레벨 : {"+level[6].getCharacterLevel()+"}, 경험치 : {"+level[6].getCharacterExp()+"}}\n" +
-                "메이플 캐릭터의 기본 정보와 일주일 간의 레벨과 경험치로 같은 레벨과 비교해서 좋은지 나쁜지 평가해줘.\n" +
-                "답변할때 내가 알려준 기본정보와 레벨 정보를 다시 알려주지 않아도돼. 서두나 부연 설명은 일절 포함하지 마.\n" +
-                "그리고 200자 이내로 대답해줘.";
+        String name = basic.getCharacterName();
+        String world = basic.getWorldName();
+        String text = """
+    지시문:
+    제공된 메이플스토리 캐릭터의 일주일간 레벨 및 경험치 변화 데이터를 기반으로, 같은 레벨대의 일반적인 성장 속도와 비교하여 해당 캐릭터의 성장률을 평가해 주세요.
+    답변은 200자 이내로 간결하게 작성하고, 서두나 부연 설명, 제공된 데이터는 일절 포함하지 마세요. 평가 결과만 제시하세요.
 
+    캐릭터 정보:
+    이름: %s,
+    월드: %s
+
+    일주일간 레벨 및 경험치 데이터:
+    7일 전: 레벨 %d, 경험치 %s
+    6일 전: 레벨 %d, 경험치 %s
+    5일 전: 레벨 %d, 경험치 %s
+    4일 전: 레벨 %d, 경험치 %s
+    3일 전: 레벨 %d, 경험치 %s
+    2일 전: 레벨 %d, 경험치 %s
+    1일 전: 레벨 %d, 경험치 %s
+    """.formatted(
+                name,
+                world,
+                level[0].getCharacterLevel(), level[0].getCharacterExp(),
+                level[1].getCharacterLevel(), level[1].getCharacterExp(),
+                level[2].getCharacterLevel(), level[2].getCharacterExp(),
+                level[3].getCharacterLevel(), level[3].getCharacterExp(),
+                level[4].getCharacterLevel(), level[4].getCharacterExp(),
+                level[5].getCharacterLevel(), level[5].getCharacterExp(),
+                level[6].getCharacterLevel(), level[6].getCharacterExp()
+        );
         return new BaseResponse<>(HttpStatus.OK.value(), "레벨 정보를 가져왔습니다.", geminiUtils.getGeminiGoogleResponse(text));
     }
 
@@ -290,27 +316,143 @@ public class AiServiceImpl implements AiService{
     @Override
     public String[] getCharacterRecommend(String ocid) throws HttpException, IOException {
         CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
-        String basicString = nexonUtils.basicString(basic);
-        String text = "1. 지시문\n" +
-                "참고자료의 캐릭터 정보를 보고, 이 캐릭터를 육성하는 유저가 AI에게 직접 물어볼 만한 질문 5가지를 생성해 줘. 질문은 30자 이내로 작성해줘. 출력은 질문 5개만 번호를 붙여서 나열해줘. 서두나 부연 설명은 일절 포함하지 마.\n" +
-                "2. 참고자료\n" +
-                "기본정보: {" + basicString + "}\n" +
-                "3. 출력구조\n" +
-                "1. 질문 1\n" +
-                "2. 질문 2\n" +
-                "3. 질문 3\n" +
-                "4. 질문 4\n" +
-                "5. 질문 5\n" +
-                "질문 5개만 위 출력구조 형식으로 출력해줘.";
-        String geminiResponse = geminiUtils.getGeminiGoogleResponse(text);
+        CharacterInfoDTO info = nexonUtils.getCharacterInfo(ocid, false);
+        String text = """
+                1. 지시문
+                가장 먼저 참고자료에 있는 캐릭터의 정보를 확인해줘.\s
+                그리고 그 캐릭터와 비슷한 스펙을 가진 캐릭터를 키우는 유저들이 주로 질문하는 것, 해결하고 싶어하는 것, 검색하는 것들을 구글 검색어 기반으로 조사해줘.\s
+                조사한 데이터를기반으로 메이플스토리 유저가 자신의 캐릭터의 상황이나 문제를 개선 및 해결하기 위해 물어볼만한 질문 5개를 생성해줘.\s
+                질문은 30자 이내로 작성해줘. 출력은 질문 5개만 번호를 붙여서 나열해줘. 서두나 부연 설명은 일절 포함하지 마.
+                2. 참고자료
+                캐릭터 정보: { %s }
+                전투력 : { %s }
+                하이퍼 스탯 : { %s }
+                어빌리티 : { %s }
+                장착 장비: { %s }
+                3. 출력구조
+                1. 질문 1
+                2. 질문 2
+                3. 질문 3
+                4. 질문 4
+                5. 질문 5
+                질문 5개만 위 출력구조 형식으로 출력해줘.""".formatted(nexonUtils.basicFullString(info.getBasic()), getPower(info.getStat().getFinalStat())
+                , convertHyperStat(info.getHyperStat()), convertAbility(info.getAbility()), convertItem(info.getItemEquipment()));
+        log.info(text);
+        String geminiResponse = geminiUtils.getGeminiTemGoogleResponse(text);
         return converQuestion(geminiResponse);
+    }
+
+    public String getPower(List<CharacterFinalStatDTO> finalStat){
+        String power = "";
+        for (CharacterFinalStatDTO stat: finalStat){
+            if(stat.getStatName().equals("전투력")){
+                power = stat.getStatValue();
+            }
+        }
+        return power;
+    }
+
+    public String convertHyperStat(CharacterHyperStatDTO hyperStat) {
+        List<CharacterHyperStatPresetDTO> selectedPreset;
+
+        switch (hyperStat.getUsePresetNo()) {
+            case "1":
+                selectedPreset = hyperStat.getHyperStatPreset1();
+                break;
+            case "2":
+                selectedPreset = hyperStat.getHyperStatPreset2();
+                break;
+            case "3":
+                selectedPreset = hyperStat.getHyperStatPreset3();
+                break;
+            default:
+                selectedPreset = List.of(); // 유효하지 않은 프리셋 번호의 경우 빈 리스트를 반환
+                break;
+        }
+
+        return selectedPreset.stream()
+                .filter(stat -> stat.getStatIncrease() != null)
+                .map(stat -> String.format(
+                        """
+                        {
+                            "스탯 종류": "%s",
+                            "스탯 레벨": %d,
+                            "스탯 상승량": "%s"
+                        }""",
+                        stat.getStatType(), stat.getStatLevel(), stat.getStatIncrease()
+                ))
+                .collect(Collectors.joining(",\n", "[\n", "\n]"));
+    }
+
+    public String convertAbility(CharacterAbilityDTO ability) {
+        String abilityInfoJson = ability.getAbilityInfo().stream()
+                .map(ab -> String.format(
+                        """
+                        {
+                            "어빌리티 등급": "%s",
+                            "어빌리티 값": "%s"
+                        }""",
+                        ab.getAbilityGrade(), ab.getAbilityValue()
+                ))
+                .collect(Collectors.joining(",\n", "[\n", "\n]"));
+
+        return String.format(
+                """
+                {
+                    "전체 어빌리티 등급": "%s",
+                    "어빌리티 목록": %s
+                }""",
+                ability.getAbilityGrade(),
+                abilityInfoJson
+        );
+    }
+
+    public String convertItem(CharacterItemEquipmentDTO itemEquipment){
+        return itemEquipment.getItemEquipment().stream()
+                .map(item -> String.format(
+                        """
+                        {
+                            "장비 부위 명": "%s",
+                            "장비 명": "%s",
+                            "장비 설명": "%s",
+                            "장비 최종 옵션 정보": {
+                                "STR": %s,
+                                "DEX": %s,
+                                "INT": %s,
+                                "LUK": %s,
+                                "최대 HP": %s,
+                                "최대 MP": %s,
+                                "공격력": %s,
+                                "마력": %s,
+                                "방어력": %s,
+                                "이동속도": %s,
+                                "점프력": %s,
+                                "보스 몬스터 데미지 증가(%%)": %s,
+                                "몬스터 방어율 무시(%%)": %s,
+                                "올스탯(%%)": %s,
+                                "데미지(%%)": %s,
+                                "착용 레벨 감소": %s,
+                                "최대 HP(%%)": %s,
+                                "최대 MP(%%)": %s
+                            }
+                        }
+                        """,
+                        item.getItemEquipmentPart(), item.getItemName(), item.getItemDescription(),
+                        item.getItemTotalOption().getStrength(), item.getItemTotalOption().getDexterity(), item.getItemTotalOption().getIntelligence(), item.getItemTotalOption().getLuck(),
+                        item.getItemTotalOption().getMaxHp(), item.getItemTotalOption().getMaxMp(), item.getItemTotalOption().getAttackPower(), item.getItemTotalOption().getMagicPower(),
+                        item.getItemTotalOption().getArmor(), item.getItemTotalOption().getSpeed(), item.getItemTotalOption().getJump(), item.getItemTotalOption().getBossDamage(),
+                        item.getItemTotalOption().getIgnoreMonsterArmor(), item.getItemTotalOption().getAllStat(), item.getItemTotalOption().getDamage(),
+                        item.getItemTotalOption().getEquipmentLevelDecrease(), item.getItemTotalOption().getMaxHpRate(), item.getItemTotalOption().getMaxMpRate()
+                ))
+                .collect(Collectors.joining(",\n", "[\n", "\n]"));
     }
 
     @Override
     public String[] getUserRecommend() throws HttpException, IOException {
         String text = """
                 1. 지시문
-                메이플 스토리 유저가 AI에게 직접 물어볼 만한 질문 5가지를 생성해 줘. 질문은 30자 이내로 작성해줘. 출력은 질문 5개만 번호를 붙여서 나열해줘. 서두나 부연 설명은 일절 포함하지 마.
+                메이플스토리 복귀 유저, 신규 유저가 주로 궁금해하는 것들을 구글 검색어 기준으로 조사하고 이 유저들이 AI에게 물어볼 만한 질문 5가지를 작성해줘.
+                질문은 30자 이내로 작성해줘. 출력은 질문 5개만 번호를 붙여서 나열해줘. 서두나 부연 설명은 일절 포함하지 마.
                 2. 출력구조
                 1. 질문 1
                 2. 질문 2

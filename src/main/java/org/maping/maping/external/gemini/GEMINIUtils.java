@@ -268,6 +268,26 @@ public class GEMINIUtils {
         return response.text();
     }
 
+    //제미나이 검색(구글 검색 O)
+    public String getGeminiTemGoogleResponse(String text) throws HttpException, IOException {
+        Client client = Client.builder().apiKey(GEMINI_API_KEY).build();
+        Content systemInstruction = Content.fromParts(Part.fromText("You're an expert on Nexon's MapleStory."));
+        Tool googleSearchTool = Tool.builder().googleSearch(GoogleSearch.builder().build()).build();
+
+        GenerateContentConfig config =
+                GenerateContentConfig.builder()
+                        .systemInstruction(systemInstruction)
+                        .tools(ImmutableList.of(googleSearchTool))
+                        .topP(0.2f)
+                        .temperature(1.6f)
+                        .build();
+
+        GenerateContentResponse response =
+                client.models.generateContent("gemini-2.0-flash", text, config);
+
+        return response.text();
+    }
+
 //    public String getGeminiResponse(String text) throws IOException, HttpException{
 //        Client client = Client.builder().apiKey(GEMINI_API_KEY).build();
 //

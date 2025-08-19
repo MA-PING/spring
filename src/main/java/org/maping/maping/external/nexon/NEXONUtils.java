@@ -731,6 +731,16 @@ public class NEXONUtils {
                 "직업 이름: " + basic.getCharacterClass();
     }
 
+    public String basicFullString(CharacterBasicDTO basic) {
+
+        return "캐릭터 이름: " + basic.getCharacterName() + "\n" +
+                "캐릭터 레벨: " + basic.getCharacterLevel() + "\n" +
+                "월드 이름: " + basic.getWorldName() + "\n" +
+                "직업 이름: " + basic.getCharacterClass()+"\n"+
+                "전직 차수: " + basic.getCharacterClassLevel();
+    }
+
+
     public String statString(CharacterStatDto stat) {
         StringBuilder result = new StringBuilder();
         for(int i = 0; i < stat.getFinalStat().size(); i++){
