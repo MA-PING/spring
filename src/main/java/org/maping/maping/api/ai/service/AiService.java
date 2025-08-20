@@ -32,7 +32,7 @@ public interface AiService {
 
     AiChatResponse getChat(Long userId, String chatId, String characterName, String type, String ocid, String text) throws HttpException, IOException;
 
-    String[] getCharacterRecommend(String ocid) throws HttpException, IOException;
+    List<String> getCharacterRecommend(String ocid, Long userId) throws HttpException, IOException;
 
     String[] getUserRecommend() throws HttpException, IOException;
 

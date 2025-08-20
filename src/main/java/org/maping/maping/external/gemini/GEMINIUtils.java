@@ -81,7 +81,7 @@ public class GEMINIUtils {
     public void setNotice() throws HttpException, IOException {
         NoticeUpdateListDTO noticeList = nexonUtils.getNoticeUpdateList();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        log.info(noticeList.toString());
+
 
         for(int i = noticeList.getNotice().size() -1; i >= 0 ; i--){
             NoticeJpaEntity entity = noticeRepository.findByNoticeUrl((noticeList.getNotice().get(i).getUrl()));
@@ -199,7 +199,6 @@ public class GEMINIUtils {
 
     //제미나이 스트림 검색(구글 검색 O)
     public ResponseStream<GenerateContentResponse> getNoLoginGeminiStreamResponse(List<Content> promptForModel) throws HttpException, IOException {
-        log.info(String.valueOf(promptForModel));
         Content systemInstruction = Content.fromParts(Part.fromText("You're an expert on Nexon's MapleStory."));
         Tool googleSearchTool = Tool.builder().googleSearch(GoogleSearch.builder().build()).build();
         GenerateContentConfig config =
@@ -231,7 +230,6 @@ public class GEMINIUtils {
 
         String contents = geminiString.contents(chatHistory);
         String googleSearch = geminiString.googleSearch(contents);
-        log.info(googleSearch);
         WebClient webClient = WebClient.builder()
                 .baseUrl(Gemini2StreamURL + GEMINI_API_KEY)
                 .build();

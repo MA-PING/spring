@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.maping.maping.model.ai.AiHistoryJpaEntity;
+import org.maping.maping.model.ai.QuestionsJpaEntity;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
@@ -65,6 +66,9 @@ public class UserInfoJpaEntity {
     @Size(max = 255)
     @Column(name = "main_character_name")
     private String mainCharacterName;
+
+    @OneToMany(mappedBy = "user")
+    private Set<QuestionsJpaEntity> questionsTbs = new LinkedHashSet<>();
 
 
     // getUserApi() 메서드 정의

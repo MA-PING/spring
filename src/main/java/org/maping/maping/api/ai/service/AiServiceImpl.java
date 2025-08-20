@@ -13,9 +13,7 @@ import org.maping.maping.external.nexon.NEXONUtils;
 import org.maping.maping.external.nexon.dto.character.CharacterBasicDTO;
 import org.maping.maping.external.nexon.dto.character.CharacterInfoDTO;
 import org.maping.maping.external.nexon.dto.character.ability.CharacterAbilityDTO;
-import org.maping.maping.external.nexon.dto.character.ability.CharacterAbilityInfoDTO;
 import org.maping.maping.external.nexon.dto.character.itemEquipment.CharacterItemEquipmentDTO;
-import org.maping.maping.external.nexon.dto.character.itemEquipment.CharacterItemEquipmentInfoDTO;
 import org.maping.maping.external.nexon.dto.character.skill.CharacterLinkSkillDTO;
 import org.maping.maping.external.nexon.dto.character.skill.CharacterSkillDTO;
 import org.maping.maping.external.nexon.dto.character.stat.CharacterFinalStatDTO;
@@ -27,9 +25,11 @@ import org.maping.maping.external.nexon.dto.union.UnionArtifactDTO;
 import org.maping.maping.external.nexon.dto.union.UnionDTO;
 import org.maping.maping.external.nexon.dto.union.UnionRaiderDTO;
 import org.maping.maping.model.ai.AiHistoryJpaEntity;
+import org.maping.maping.model.ai.QuestionsJpaEntity;
 import org.maping.maping.model.user.UserInfoJpaEntity;
 import org.maping.maping.repository.ai.AiHistoryRepository;
 import org.maping.maping.repository.ai.NoticeRepository;
+import org.maping.maping.repository.ai.QuestionsRepository;
 import org.maping.maping.repository.user.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -53,14 +53,16 @@ public class AiServiceImpl implements AiService{
     private final AiHistoryRepository aiHistoryRepository;
     private final UserRepository userRepository;
     private final AiHistoryConvert setAiHistoryConvert;
+    private final QuestionsRepository questionsRepository;
 
-    public AiServiceImpl(GEMINIUtils geminiUtils, NoticeRepository noticeRepository, NEXONUtils nexonUtils, AiHistoryRepository aiHistoryRepository, UserRepository userRepository, AiHistoryConvert setAiHistoryConvert) {
+    public AiServiceImpl(GEMINIUtils geminiUtils, NoticeRepository noticeRepository, NEXONUtils nexonUtils, AiHistoryRepository aiHistoryRepository, UserRepository userRepository, AiHistoryConvert setAiHistoryConvert, QuestionsRepository questionsRepository) {
         this.geminiUtils = geminiUtils;
         this.noticeRepository = noticeRepository;
         this.nexonUtils = nexonUtils;
         this.aiHistoryRepository = aiHistoryRepository;
         this.userRepository = userRepository;
         this.setAiHistoryConvert = setAiHistoryConvert;
+        this.questionsRepository = questionsRepository;
     }
 
     @Override
@@ -314,8 +316,8 @@ public class AiServiceImpl implements AiService{
     }
 
     @Override
-    public String[] getCharacterRecommend(String ocid) throws HttpException, IOException {
-        CharacterBasicDTO basic = nexonUtils.getCharacterBasic(ocid);
+    public List<String> getCharacterRecommend(String ocid, Long userId) throws HttpException, IOException {
+        UserInfoJpaEntity userInfoJpaEntity = userRepository.findById(userId).orElse(null);
         CharacterInfoDTO info = nexonUtils.getCharacterInfo(ocid, false);
         String text = """
                 1. 지시문
@@ -337,9 +339,19 @@ public class AiServiceImpl implements AiService{
                 5. 질문 5
                 질문 5개만 위 출력구조 형식으로 출력해줘.""".formatted(nexonUtils.basicFullString(info.getBasic()), getPower(info.getStat().getFinalStat())
                 , convertHyperStat(info.getHyperStat()), convertAbility(info.getAbility()), convertItem(info.getItemEquipment()));
-        log.info(text);
         String geminiResponse = geminiUtils.getGeminiTemGoogleResponse(text);
-        return converQuestion(geminiResponse);
+        final String uuid = UUID.randomUUID().toString();
+        final String now = String.valueOf(LocalDateTime.now());
+        List<AiChatHistoryDTO> HistoryList = new ArrayList<>();
+        AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, info.getBasic().getCharacterName(), "recommend", text, geminiResponse, now);
+        HistoryList.add(aiChatHistoryDTO);
+        saveAiHistory(uuid, userInfoJpaEntity, null, setAiHistoryConvert.getHistoryJson(HistoryList));
+        List<String> uuidResponse = new ArrayList<>();
+        uuidResponse.add(uuid);
+        uuidResponse.addAll(Arrays.asList(converQuestion(geminiResponse)));
+
+
+        return uuidResponse;
     }
 
     public String getPower(List<CharacterFinalStatDTO> finalStat){
@@ -616,6 +628,7 @@ public class AiServiceImpl implements AiService{
 
         return aiChatResponse;
     }
+
     public List<Part> setPart(String text){
         return ImmutableList.of(Part.builder().text(text).build());
     }
@@ -629,6 +642,7 @@ public class AiServiceImpl implements AiService{
         final String uuid = UUID.randomUUID().toString();
         final List<String> contentList = new ArrayList<>(); // 결과를 모을 리스트 추가
         final String now = String.valueOf(LocalDateTime.now());
+
         return Flux.create(sink -> {
             Flux<String> content;
 
@@ -642,6 +656,7 @@ public class AiServiceImpl implements AiService{
                     AiChatHistoryDTO aiChatHistoryDTO = historyDto(null, "null", "null", text, contentConvert(contentList), now);
                     HistoryList.add(aiChatHistoryDTO);
                     saveAiHistory(uuid, userInfoJpaEntity, topic, setAiHistoryConvert.getHistoryJson(HistoryList));
+                    saveQuestion(text, userInfoJpaEntity);
                     sink.complete();
                 });
 
@@ -666,6 +681,7 @@ public class AiServiceImpl implements AiService{
                     aiHistoryChatId.setUpdatedAt(LocalDateTime.now());
                     aiHistoryChatId.setContent(setAiHistoryConvert.getHistoryJson(HistoryListDTO[0]));
                     aiHistoryRepository.save(aiHistoryChatId);
+                    saveQuestion(text, userInfoJpaEntity);
                     sink.complete();
                 });
             }
@@ -700,6 +716,7 @@ public class AiServiceImpl implements AiService{
                     AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, contentConvert(contentList), now);
                     HistoryList.add(aiChatHistoryDTO);
                     saveAiHistory(uuid, userInfoJpaEntity, topic, setAiHistoryConvert.getHistoryJson(HistoryList));
+                    saveQuestion(text, userInfoJpaEntity);
                     sink.complete();
                 });
 
@@ -722,6 +739,7 @@ public class AiServiceImpl implements AiService{
                     aiHistoryChatId.setUpdatedAt(LocalDateTime.now());
                     aiHistoryChatId.setContent(setAiHistoryConvert.getHistoryJson(HistoryListDTO[0]));
                     aiHistoryRepository.save(aiHistoryChatId);
+                    saveQuestion(text, userInfoJpaEntity);
                     sink.complete();
                 });
 
@@ -741,6 +759,7 @@ public class AiServiceImpl implements AiService{
                     AiChatHistoryDTO aiChatHistoryDTO = historyDto(ocid, characterName, type, text, contentConvert(contentList), now);
                     HistoryListDTO[0].add(aiChatHistoryDTO);
                     saveAiHistory(uuid, userInfoJpaEntity, topic, setAiHistoryConvert.getHistoryJson(HistoryListDTO[0]));
+                    saveQuestion(text, userInfoJpaEntity);
                     sink.complete();
                 });
 
@@ -767,6 +786,7 @@ public class AiServiceImpl implements AiService{
                     aiHistoryChatId.setUpdatedAt(LocalDateTime.now());
                     aiHistoryChatId.setContent(setAiHistoryConvert.getHistoryJson(HistoryListDTO[0]));
                     aiHistoryRepository.save(aiHistoryChatId);
+                    saveQuestion(text, userInfoJpaEntity);
                     sink.complete();
                 });
 
@@ -775,6 +795,15 @@ public class AiServiceImpl implements AiService{
                 return;
             }
         });
+    }
+
+    private void saveQuestion(String text, UserInfoJpaEntity user){
+        QuestionsJpaEntity entity = QuestionsJpaEntity.builder()
+                .questionText(text)
+                .user(user)
+                .status("PENDING")
+                .build();
+        questionsRepository.save(entity);
     }
 
     private String contentConvert(List<String> contentList) {
