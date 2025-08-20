@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface AiHistoryRepository extends JpaRepository<AiHistoryJpaEntity, Long> {
-    @Query("SELECT a FROM AiHistoryJpaEntity a WHERE a.user = :userId ORDER BY a.updatedAt ASC ")
+    @Query("SELECT a FROM AiHistoryJpaEntity a WHERE a.user = :userId AND a.topic IS NOT NULL ORDER BY a.updatedAt ASC ")
     List<AiHistoryJpaEntity> findByUserId(UserInfoJpaEntity userId);
 
     AiHistoryJpaEntity findByChatId(String chatId);
